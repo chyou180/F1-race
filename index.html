@@ -276,6 +276,442 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
     }
+    :root {
+      color-scheme: light;
+      --bg: #eeeae1;
+      --surface: #faf8f2;
+      --raised: #e7e1d6;
+      --line: #d4ccbf;
+      --text: #1b1b1a;
+      --muted: #6d6b64;
+      --dim: #89847a;
+      --red: #d8222f;
+      --orange: #ec5936;
+      --green: #28754c;
+      --display: Impact, "Arial Narrow", "Microsoft JhengHei", sans-serif;
+    }
+    body {
+      min-width: 0;
+      background-color: var(--bg);
+      background-image: linear-gradient(#29271e08 1px, transparent 1px), linear-gradient(90deg, #29271e08 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    .sidebar {
+      background: #191a19;
+      border-right-color: #191a1920;
+    }
+    .brand-mark { background: var(--red); box-shadow: 4px 4px 0 #f1a085; }
+    .nav a { border-radius: 0; }
+    .sidebar .nav a:hover, .sidebar .nav a.active { color: #f3f1ed; }
+    .sidebar .nav-icon { color: #a8aaa5; }
+    .sidebar .profile-label { color: #f0ede6; }
+    .sidebar .profile-label span { color: #92918b; }
+    .season-card { border-color: #ffffff21; background: linear-gradient(135deg, #242522, #191a19); }
+    .season-emblem, .eyebrow, .season-pill b { color: var(--red); }
+    .topbar { border-bottom: 1px solid #24211b26; padding-bottom: 13px; }
+    .breadcrumb { color: #77736a; font: 9px var(--mono); letter-spacing: .8px; }
+    .breadcrumb b { color: #24221e; }
+    .icon-button { border-color: #cfc6b8; background: var(--surface); color: var(--text); }
+    .icon-button:hover { border-color: var(--red); color: var(--red); }
+    .page-heading { position: relative; min-height: 92px; align-items: center; }
+    .page-heading::after {
+      content: "速度の美学  /  F1 RACE REVIEW";
+      position: absolute; right: 17%; bottom: 5px; color: #8b8174;
+      font: 9px var(--mono); letter-spacing: 2px;
+    }
+    .eyebrow { font-weight: 700; }
+    h1 { color: #171817; font-family: "Yu Mincho", "Noto Serif TC", "Microsoft JhengHei", serif; font-weight: 900; }
+    .page-heading p { color: #6d6a61; }
+    .season-pill { border-color: #d8222f55; color: #a52528; background: #faf8f2; }
+    .select-input, .search-input {
+      border-color: #d5cdbf; background-color: #faf8f2; color: #22211e;
+    }
+    .select-input option { background: #faf8f2; color: #22211e; }
+    .select-input:focus, .search-input:focus { border-color: var(--red); }
+    .hero {
+      min-height: 244px; border: 0; border-top: 4px solid var(--red);
+      background: linear-gradient(108deg, #171918 0%, #222321 59%, #4b2021 100%);
+      box-shadow: 0 9px 24px #34281d1c;
+    }
+    .hero::before { height: 3px; }
+    .hero::after { color: #ffffff09; }
+    .hero-overline { color: #e5a186; }
+    .hero-title { font-family: "Yu Mincho", "Noto Serif TC", "Microsoft JhengHei", serif; font-weight: 900; }
+    .hero-stats { border-left-color: #ffffff2b; }
+    .countdown-unit { border-color: #ffffff21; background: #111311b8; }
+    .countdown-unit b { color: #fff8ed; }
+    .countdown-unit span { color: #d3c8bd; }
+    .search-panel label { color: #eee8df; }
+    .search-note, .status { color: #c0b9af; }
+    .search-button, .refresh-button { background: var(--red); }
+    .search-button:hover, .refresh-button:hover { background: #f04740; }
+    .start-lights {
+      position: absolute; z-index: 2; top: 14px; right: 17px; display: flex; gap: 6px;
+      padding: 7px 10px; border: 1px solid #ffffff2c; background: #111311c9;
+    }
+    .start-lights span {
+      width: 9px; height: 9px; border-radius: 50%; background: #672024;
+      box-shadow: inset 0 0 0 1px #ff88884a;
+      animation: start-light 5s infinite;
+    }
+    .start-lights span:nth-child(2) { animation-delay: .35s; }
+    .start-lights span:nth-child(3) { animation-delay: .7s; }
+    .start-lights span:nth-child(4) { animation-delay: 1.05s; }
+    .start-lights span:nth-child(5) { animation-delay: 1.4s; }
+    .race-track {
+      position: absolute; z-index: 2; right: 0; bottom: 0; left: 0; height: 17px;
+      overflow: hidden; border-top: 1px solid #ffffff35;
+      background: repeating-linear-gradient(90deg, #ffffff18 0 26px, transparent 26px 48px);
+      pointer-events: none;
+    }
+    .race-track::before {
+      content: ""; position: absolute; top: 6px; right: 0; left: 0;
+      border-top: 1px dashed #f9eee27d;
+    }
+    .track-car {
+      position: absolute; top: 1px; left: 0; width: 31px; height: 10px;
+      animation: track-sprint 6s linear infinite;
+    }
+    .track-car svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 0 4px #ff4b35a3); }
+    @keyframes start-light {
+      0%, 5% { background: #672024; box-shadow: inset 0 0 0 1px #ff88884a; }
+      12%, 56% { background: #f12632; box-shadow: 0 0 10px #ff3035c9, inset 0 0 0 1px #ffd0cc; }
+      64%, 100% { background: #672024; box-shadow: inset 0 0 0 1px #ff88884a; }
+    }
+    @keyframes track-sprint {
+      from { left: -36px; }
+      to { left: calc(100% + 36px); }
+    }
+    .stats { gap: 10px; }
+    .stat-card {
+      border-color: #d8d0c4; background: #faf8f2;
+      box-shadow: 0 3px 8px #3a30220a;
+      animation: card-in .55s both;
+    }
+    .stat-card:nth-child(2) { animation-delay: .08s; }
+    .stat-card:nth-child(3) { animation-delay: .16s; }
+    .stat-card:nth-child(4) { animation-delay: .24s; }
+    .stat-label { color: #777268; }
+    .stat-glyph { color: #a39b8c; }
+    .stat-value { color: #1f201e; }
+    .stat-foot { color: #817b70; }
+    .panel { border-color: #d8d0c4; background: #faf8f2; box-shadow: 0 4px 12px #362c1c0a; }
+    .panel-title { color: #1b1b1a; font-family: "Yu Mincho", "Noto Serif TC", "Microsoft JhengHei", serif; font-weight: 900; }
+    .panel-subtitle { color: #777268; }
+    .panel-code { color: #8b8174; }
+    .filter-button { color: #6e6a61; }
+    .filter-button:hover, .filter-button.active { border-color: #d8d0c4; color: #171817; background: #eae4d9; }
+    .item-count { color: #827a6d; }
+    .race-row { border-color: #e9e4db; background: #f6f3ec; }
+    .race-row:hover { background: #eee8dc; }
+    .race-row.selected { border-color: #d8222f78; background: #fbe7df; }
+    .race-name { color: #211f1b; }
+    .race-meta { color: #777268; }
+    .race-date { color: #514c44; }
+    .race-state { color: #a3312c; }
+    .race-row.completed .race-bar { background: #548266; }
+    .race-row.completed .race-state { color: #39714d; }
+    .driver-row { border-color: #e8e2d8; background: #f6f3ec; }
+    .driver-position { color: var(--red); }
+    .driver-name { color: #262420; }
+    .driver-team { color: #777268; }
+    .driver-number { color: #423e37; }
+    .detail-box { border-color: #ddd5c8; background: #f5f1e9; }
+    .detail-top { color: #777268; }
+    .detail-top b { color: #25231f; }
+    .detail-stat { color: #777268; }
+    .detail-stat b { color: #25231f; }
+    .notice { background: #f5eadb; color: #625c52; }
+    .notice strong { color: #a6302c; }
+    .detail-hero { border-color: #292725; }
+    .back-button { border-color: #d3cabc; background: #faf8f2; color: #292722; }
+    .back-button:hover { border-color: var(--red); color: var(--red); }
+    .detail-controls label { color: #6b675f; }
+    .data-table-wrap { border-color: #e4ddd1; }
+    .data-table th { background: #e9e3d8; color: #625c52; }
+    .data-table td { color: #37342e; }
+    .data-table th, .data-table td { border-bottom-color: #e9e3d8; }
+    .data-loading { color: #777268; }
+    .detail-metric { border-color: #e4ddd1; background: #f5f1e9; color: #777268; }
+    .detail-metric b { color: #25231f; }
+    .footnote { color: #817b70; }
+    .footnote a { color: #a3312c; }
+    .toast { background: #242522; }
+    .race-row:nth-child(-n+4) { animation: race-arrive .35s both; }
+    .race-row:nth-child(2) { animation-delay: .04s; }
+    .race-row:nth-child(3) { animation-delay: .08s; }
+    .race-row:nth-child(4) { animation-delay: .12s; }
+    .hero {
+      min-height: 220px;
+      border: 1px solid #d8d0c4;
+      border-top: 3px solid var(--red);
+      background:
+        linear-gradient(110deg, #faf8f2 0%, #f7f3eb 69%, #f1e8dc 100%);
+      box-shadow: 0 4px 12px #362c1c0a;
+    }
+    .hero::after {
+      content: "01";
+      right: 23%; bottom: -66px;
+      color: #d8222f08;
+      font: 900 225px/.9 var(--display);
+    }
+    .hero-overline { color: #a3312c; }
+    .hero-title { color: #1c1b18; }
+    .hero-subtitle { color: #6d6a61; }
+    .hero-stats { border-left-color: #d8d0c4; }
+    .hero-stat-label, .hero-stat-foot { color: #777268; }
+    .search-panel label { color: #292722; }
+    .search-note, .status { color: #6d6a61; }
+    .status.error { color: #a3312c; }
+    .status.warning { color: #8b541d; }
+    .countdown-unit {
+      border-color: #ded6ca;
+      background: #eee9df;
+      box-shadow: inset 0 1px #ffffffb3;
+    }
+    .countdown-unit b { color: #24211d; }
+    .countdown-unit span { color: #777268; }
+    .start-lights {
+      top: 12px; right: 13px; gap: 5px; padding: 6px 8px;
+      border-color: #d8d0c4; background: #e9e2d6;
+    }
+    .start-lights span { background: #c8b8aa; box-shadow: inset 0 0 0 1px #8f776b66; }
+    @keyframes start-light {
+      0%, 5% { background: #c8b8aa; box-shadow: inset 0 0 0 1px #8f776b66; }
+      12%, 56% { background: #e52b37; box-shadow: 0 0 9px #e52b3780, inset 0 0 0 1px #fff2e8; }
+      64%, 100% { background: #c8b8aa; box-shadow: inset 0 0 0 1px #8f776b66; }
+    }
+    .race-track {
+      height: 13px; border-top: 1px solid #d8d0c4;
+      background: repeating-linear-gradient(90deg, #b8afa140 0 24px, transparent 24px 46px);
+    }
+    .race-track::before { top: 5px; border-color: #8a81747d; }
+    .track-car svg { filter: drop-shadow(0 1px 2px #6e302344); }
+    @keyframes card-in { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes race-arrive { from { opacity: 0; transform: translateX(-7px); } to { opacity: 1; transform: translateX(0); } }
+    @media (max-width: 850px) {
+      .page-heading::after { right: 0; }
+    }
+    @media (max-width: 570px) {
+      .page-heading::after { display: none; }
+      .start-lights { top: 9px; right: 10px; gap: 4px; padding: 5px 7px; }
+      .start-lights span { width: 7px; height: 7px; }
+      .hero-overline { padding-right: 68px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .start-lights span { animation: none; }
+      .track-car { animation: none; left: 42%; }
+    }
+    body[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #111315;
+      --surface: #191c1f;
+      --raised: #202428;
+      --line: #303438;
+      --text: #f3f1ed;
+      --muted: #92989c;
+      --dim: #687075;
+      --red: #ff4b35;
+      --orange: #ff8a42;
+      --green: #79d9ac;
+      background-color: var(--bg);
+      background-image: radial-gradient(ellipse at 78% -15%, #6d251a26, transparent 42%);
+    }
+    body[data-theme="dark"] .topbar { border-bottom-color: #ffffff0c; }
+    body[data-theme="dark"] .breadcrumb { color: #7e8589; }
+    body[data-theme="dark"] .breadcrumb b { color: #d6d7d4; }
+    body[data-theme="dark"] .icon-button { border-color: var(--line); background: var(--surface); color: var(--text); }
+    body[data-theme="dark"] .icon-button:hover { border-color: #ff7758a6; color: white; }
+    body[data-theme="dark"] .page-heading::after { color: #ffffff40; }
+    body[data-theme="dark"] h1 { color: var(--text); }
+    body[data-theme="dark"] .page-heading p { color: var(--muted); }
+    body[data-theme="dark"] .season-pill { border-color: #ff714533; color: #ff9a6c; background: transparent; }
+    body[data-theme="dark"] .season-pill b { color: var(--orange); }
+    body[data-theme="dark"] .select-input, body[data-theme="dark"] .search-input {
+      border-color: #ffffff15; background-color: #101214; color: var(--text);
+    }
+    body[data-theme="dark"] .select-input option { background: var(--surface); color: var(--text); }
+    body[data-theme="dark"] .hero {
+      border-color: #ffffff16; border-top-color: var(--red);
+      background: linear-gradient(107deg, #202326 0%, #1b1e20 48%, #351c19 100%);
+      box-shadow: 0 9px 24px #0003;
+    }
+    body[data-theme="dark"] .hero::after { content: "F1"; color: #ffffff09; }
+    body[data-theme="dark"] .hero-overline { color: #e5a186; }
+    body[data-theme="dark"] .hero-title { color: var(--text); }
+    body[data-theme="dark"] .hero-subtitle { color: #a7adaf; }
+    body[data-theme="dark"] .hero-stats { border-left-color: #ffffff2b; }
+    body[data-theme="dark"] .hero-stat-label, body[data-theme="dark"] .hero-stat-foot { color: #a7adaf; }
+    body[data-theme="dark"] .countdown-unit { border-color: #ffffff21; background: #111311b8; box-shadow: none; }
+    body[data-theme="dark"] .countdown-unit b { color: #fff1e8; }
+    body[data-theme="dark"] .countdown-unit span { color: #d3c8bd; }
+    body[data-theme="dark"] .search-panel label { color: #eee8df; }
+    body[data-theme="dark"] .search-note, body[data-theme="dark"] .status { color: #c0b9af; }
+    body[data-theme="dark"] .status.error { color: #ff9180; }
+    body[data-theme="dark"] .status.success { color: var(--green); }
+    body[data-theme="dark"] .status.warning { color: #ffbd93; }
+    body[data-theme="dark"] .start-lights { border-color: #ffffff2c; background: #111311c9; }
+    body[data-theme="dark"] .start-lights span { background: #672024; box-shadow: inset 0 0 0 1px #ff88884a; }
+    body[data-theme="dark"] .race-track { border-top-color: #ffffff35; }
+    body[data-theme="dark"] .race-track::before { border-color: #f9eee27d; }
+    body[data-theme="dark"] .track-car svg { filter: drop-shadow(0 0 4px #ff4b35a3); }
+    body[data-theme="dark"] .stat-card {
+      border-color: #ffffff10; background: var(--surface); box-shadow: none;
+    }
+    body[data-theme="dark"] .stat-label { color: #91989b; }
+    body[data-theme="dark"] .stat-glyph, body[data-theme="dark"] .stat-foot { color: #7c8488; }
+    body[data-theme="dark"] .stat-value { color: var(--text); }
+    body[data-theme="dark"] .stat-value.accent { color: var(--orange); }
+    body[data-theme="dark"] .panel { border-color: #ffffff10; background: var(--surface); box-shadow: none; }
+    body[data-theme="dark"] .panel-title { color: var(--text); }
+    body[data-theme="dark"] .panel-subtitle { color: #838a8e; }
+    body[data-theme="dark"] .panel-code { color: #697176; }
+    body[data-theme="dark"] .filter-button { color: #8d9498; }
+    body[data-theme="dark"] .filter-button:hover, body[data-theme="dark"] .filter-button.active {
+      border-color: #ffffff16; color: var(--text); background: #ffffff08;
+    }
+    body[data-theme="dark"] .item-count { color: #71797d; }
+    body[data-theme="dark"] .race-row { border-color: #ffffff0a; background: #ffffff03; }
+    body[data-theme="dark"] .race-row:hover { background: #ffffff08; }
+    body[data-theme="dark"] .race-row.selected { border-color: #ff714544; background: #ff714408; }
+    body[data-theme="dark"] .race-name { color: var(--text); }
+    body[data-theme="dark"] .race-meta { color: #848c90; }
+    body[data-theme="dark"] .race-date { color: #c5c8c6; }
+    body[data-theme="dark"] .race-state { color: #ff9a6c; }
+    body[data-theme="dark"] .race-row.completed .race-bar { background: var(--green); }
+    body[data-theme="dark"] .race-row.completed .race-state { color: var(--green); }
+    body[data-theme="dark"] .driver-row { border-color: #ffffff0a; background: #ffffff03; }
+    body[data-theme="dark"] .driver-position { color: var(--orange); }
+    body[data-theme="dark"] .driver-name { color: var(--text); }
+    body[data-theme="dark"] .driver-team { color: #7d8589; }
+    body[data-theme="dark"] .driver-number { color: #d6d7d4; }
+    body[data-theme="dark"] .detail-box { border-color: #ffffff12; background: #ffffff04; }
+    body[data-theme="dark"] .detail-top { color: #81898d; }
+    body[data-theme="dark"] .detail-top b { color: var(--text); }
+    body[data-theme="dark"] .detail-stat { color: #7f878b; }
+    body[data-theme="dark"] .detail-stat b { color: #eee; }
+    body[data-theme="dark"] .notice { background: #ff8a420b; color: #9da3a5; }
+    body[data-theme="dark"] .notice strong { color: #ffbd93; }
+    body[data-theme="dark"] .detail-hero { border-color: #ffffff12; }
+    body[data-theme="dark"] .back-button { border-color: #ffffff18; background: #ffffff06; color: #d9dcda; }
+    body[data-theme="dark"] .back-button:hover { border-color: #ff714566; color: white; }
+    body[data-theme="dark"] .detail-controls label { color: #969da0; }
+    body[data-theme="dark"] .data-table-wrap { border-color: #ffffff0a; }
+    body[data-theme="dark"] .data-table th { background: #222629; color: #a0a6a8; }
+    body[data-theme="dark"] .data-table td { color: #d1d4d2; }
+    body[data-theme="dark"] .data-table th, body[data-theme="dark"] .data-table td { border-bottom-color: #ffffff0c; }
+    body[data-theme="dark"] .data-loading { color: #92999c; }
+    body[data-theme="dark"] .detail-metric { border-color: #ffffff0c; background: #ffffff04; color: #81898d; }
+    body[data-theme="dark"] .detail-metric b { color: #f0efea; }
+    body[data-theme="dark"] .footnote { color: #656d71; }
+    body[data-theme="dark"] .footnote a { color: #ff9a6c; }
+    body[data-theme="dark"] .search-button, body[data-theme="dark"] .refresh-button { background: var(--red); }
+    body[data-theme="dark"] .toast { background: #242729; }
+    .hero-stats { min-width: 0; }
+    .hero-stat-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .hero-stat-label::after {
+      content: "LIGHTS OUT";
+      color: #a3312c;
+      font: 8px var(--mono);
+      letter-spacing: 1px;
+    }
+    .hero-countdown {
+      gap: 0;
+      padding: 7px;
+      border: 1px solid #d8d0c4;
+      border-top: 2px solid var(--red);
+      background: #232522;
+      box-shadow: 0 3px 8px #241c161c;
+    }
+    .countdown-unit {
+      position: relative;
+      padding: 9px 4px 7px;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .countdown-unit:not(:last-child)::after {
+      position: absolute;
+      top: 35%;
+      right: -2px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 8px 0 #d8222f80;
+      content: "";
+    }
+    .countdown-unit b {
+      color: #fff8ed;
+      font: 900 clamp(26px, 2.7vw, 37px)/.95 var(--mono);
+      letter-spacing: -1.5px;
+      text-shadow: 0 0 16px #ffffff18;
+      transition: color .2s;
+    }
+    .countdown-unit b.digit-tick { animation: digit-tick .34s ease-out; }
+    .countdown-unit span { color: #d0c8bc; }
+    @keyframes digit-tick {
+      0% { opacity: .35; transform: translateY(-5px); }
+      65% { color: #ff7868; text-shadow: 0 0 18px #ff4b3570; }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .hero-countdown { position: relative; }
+    .track-car {
+      top: -3px;
+      width: 92px;
+      height: 33px;
+      animation-duration: 4.6s;
+    }
+    .track-car::before {
+      position: absolute;
+      top: 9px;
+      right: calc(100% - 2px);
+      width: 35px;
+      border-top: 2px solid #d8222f8c;
+      box-shadow: 0 4px 0 #d8222f42;
+      content: "";
+      transform: skewX(-35deg);
+      transform-origin: right;
+      animation: speed-trail .45s ease-in-out infinite alternate;
+    }
+    .race-track { height: 29px; }
+    .race-track::before { top: 13px; }
+    .track-car svg { overflow: visible; }
+    .track-car svg circle:nth-of-type(2),
+    .track-car svg circle:nth-of-type(4) { transform-box: fill-box; transform-origin: center; animation: wheel-spin .7s linear infinite; }
+    .track-car svg circle:nth-of-type(3),
+    .track-car svg circle:nth-of-type(5) { transform-box: fill-box; transform-origin: center; animation: wheel-spin .7s linear infinite reverse; }
+    @keyframes speed-trail {
+      to { opacity: .35; transform: skewX(-35deg) scaleX(.65); }
+    }
+    @keyframes wheel-spin { to { transform: rotate(360deg); } }
+    body[data-theme="dark"] .hero-stat-label::after { color: #ff9a6c; }
+    body[data-theme="dark"] .hero-countdown {
+      border-color: #ffffff2a;
+      border-top-color: var(--red);
+      background: #090a0a;
+      box-shadow: 0 3px 12px #0005;
+    }
+    body[data-theme="dark"] .countdown-unit b { color: #fff8ed; }
+    body[data-theme="dark"] .countdown-unit span { color: #d3c8bd; }
+    body[data-theme="dark"] .track-car::before {
+      border-color: #ff4b35b3;
+      box-shadow: 0 4px 0 #ff4b3566;
+    }
+    @media (max-width: 570px) {
+      .hero-countdown { padding: 5px; }
+      .countdown-unit { padding: 10px 2px 8px; }
+      .countdown-unit b { font-size: clamp(20px, 7vw, 30px); letter-spacing: -1px; }
+      .countdown-unit span { font-size: 7px; }
+      .race-track { height: 26px; }
+      .race-track::before { top: 11px; }
+      .track-car { top: -2px; width: 82px; height: 29px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .countdown-unit b.digit-tick { animation: none; }
+      .track-car::before { animation: none; }
+      .track-car svg circle { animation: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -310,15 +746,16 @@
         <div class="top-actions">
           <span class="live-status"><span class="live-dot" id="connectionDot"></span><span id="connectionStatus">CONNECTING</span></span>
           <button class="icon-button mobile-menu" id="menuButton" type="button" aria-label="開啟導覽選單" aria-expanded="false">☰</button>
+          <button class="icon-button theme-toggle" id="themeToggle" type="button" aria-label="切換深色模式" aria-pressed="false" title="切換深色模式">◐</button>
           <button class="icon-button" id="refreshButton" type="button" aria-label="重新整理賽事資料" title="重新整理">↻</button>
         </div>
       </header>
 
       <section class="page-heading">
         <div>
-          <div class="eyebrow">RACE DATA. NO GUESSWORK.</div>
+          <div class="eyebrow">速度の美学 / 2026 RACE REVIEW</div>
           <h1>F1 賽事資料系統</h1>
-          <p>查看賽季賽程、分站資訊，以及最近已完成賽事的車手名次。</p>
+          <p>用賽道的速度，讀懂每一場比賽。</p>
         </div>
         <label class="season-pill" for="seasonSelect"><b>●</b>賽季
           <select class="select-input" id="seasonSelect" aria-label="選擇 F1 賽季" style="height:28px;margin-left:5px;padding:0 6px"></select>
@@ -350,6 +787,25 @@
           </div>
           <div class="search-note">也可以直接點下方賽程中的分站，不需要輸入文字。</div>
           <div class="status" id="statusMessage" role="status" aria-live="polite">正在取得賽程…</div>
+        </div>
+        <div class="start-lights" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="race-track" aria-hidden="true">
+          <span class="track-car">
+            <svg viewBox="0 0 100 36" focusable="false">
+              <path fill="#9e1724" d="M3 18h15l12-7h17l10 7h14l10-5h10l8 5h3v5H87a7 7 0 0 0-14 0H38a7 7 0 0 0-14 0H10l-7-2z"/>
+              <path fill="#e52b37" d="M7 16h15l9-9h18l9 10H38l-8 4H12z"/>
+              <path fill="#f5eee3" d="m34 9-7 7h28l-7-7z"/>
+              <path fill="#242522" d="m40 9 3-6h8l6 8-4 2z"/>
+              <path fill="#f5eee3" d="M43 5a4 4 0 0 1 8 0z"/>
+              <path fill="#c72231" d="M69 17h17l7 2v2H69z"/>
+              <path fill="#e52b37" d="M4 12h15v3H4zm87 3h8v3h-8z"/>
+              <path fill="#ffb7a7" d="M13 17h14l4-3h11l3 2H29l-7 4H13z"/>
+              <circle cx="31" cy="23" r="6.5" fill="#171817"/><circle cx="31" cy="23" r="2.5" fill="#d8d0c4"/>
+              <circle cx="80" cy="23" r="6.5" fill="#171817"/><circle cx="80" cy="23" r="2.5" fill="#d8d0c4"/>
+            </svg>
+          </span>
         </div>
       </section>
 
@@ -706,7 +1162,14 @@
         Math.floor((remaining % 3600) / 60),
         remaining % 60
       ];
-      values.forEach((id, index) => { $(`#${id}`).textContent = String(units[index]).padStart(2, "0"); });
+      values.forEach((id, index) => {
+        const digit = $(`#${id}`);
+        const value = String(units[index]).padStart(2, "0");
+        if (digit.textContent === value) return;
+        digit.textContent = value;
+        digit.classList.remove("digit-tick");
+        requestAnimationFrame(() => digit.classList.add("digit-tick"));
+      });
     }
 
     function renderRaces() {
@@ -1246,7 +1709,36 @@
       renderRaces();
     }
 
+    function setTheme(theme, persist = true) {
+      const isDark = theme === "dark";
+      document.body.dataset.theme = isDark ? "dark" : "light";
+      const toggle = $("#themeToggle");
+      toggle.textContent = isDark ? "☀" : "◐";
+      toggle.setAttribute("aria-label", isDark ? "切換明亮模式" : "切換深色模式");
+      toggle.setAttribute("title", isDark ? "切換明亮模式" : "切換深色模式");
+      toggle.setAttribute("aria-pressed", String(isDark));
+      document.querySelector('meta[name="theme-color"]').content = isDark ? "#111315" : "#eeeae1";
+      if (persist) {
+        try {
+          localStorage.setItem("apex-f1-theme", isDark ? "dark" : "light");
+        } catch (error) {
+          console.warn("無法儲存外觀偏好設定。", error);
+        }
+      }
+    }
+
     function init() {
+      let preferredTheme = "dark";
+      try {
+        const savedTheme = localStorage.getItem("apex-f1-theme");
+        if (savedTheme === "dark" || savedTheme === "light") preferredTheme = savedTheme;
+      } catch (error) {
+        console.warn("無法讀取外觀偏好設定，將使用預設深色模式。", error);
+      }
+      setTheme(preferredTheme, false);
+      $("#themeToggle").addEventListener("click", () => {
+        setTheme(document.body.dataset.theme === "dark" ? "light" : "dark");
+      });
       const seasonSelect = $("#seasonSelect");
       const currentYear = new Date().getFullYear();
       for (let year = currentYear; year >= 2023; year -= 1) {
