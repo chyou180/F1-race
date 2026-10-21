@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111315">
+  <title>APEX // F1 賽事資料系統</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111315;
+      --surface: #191c1f;
+      --raised: #202428;
+      --line: #303438;
+      --text: #f3f1ed;
+      --muted: #92989c;
+      --dim: #687075;
+      --red: #ff4b35;
+      --orange: #ff8a42;
+      --green: #79d9ac;
+      --mono: "DM Mono", Consolas, monospace;
+      --display: "Arial Narrow", "Segoe UI", sans-serif;
+      --sans: "Segoe UI", "Microsoft JhengHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+    body {
+      margin: 0; min-width: 320px; color: var(--text); background: var(--bg);
+      font-family: var(--sans); -webkit-font-smoothing: antialiased;
+      background-image: radial-gradient(ellipse at 78% -15%, #6d251a26, transparent 42%);
+    }
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: 226px minmax(0, 1fr); }
+    .sidebar {
+      position: sticky; top: 0; height: 100vh; padding: 25px 17px 19px;
+      background: #151719; border-right: 1px solid #ffffff0c; display: flex; flex-direction: column; z-index: 4;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 2px 6px 37px; }
+    .brand-mark {
+      width: 36px; height: 36px; display: grid; place-items: center; color: white;
+      background: linear-gradient(145deg, var(--orange), var(--red)); font: 900 21px var(--display);
+      transform: skew(-7deg); box-shadow: 0 5px 20px #ff4b3530;
+    }
+    .brand-name { font: 800 18px/.9 var(--display); letter-spacing: 1px; }
+    .brand-name span { display: block; color: #7b8185; font: 9px var(--mono); letter-spacing: 2px; margin-top: 6px; }
+    .nav-caption { padding: 0 10px; margin-bottom: 10px; color: #666d71; font: 9px var(--mono); letter-spacing: 1.7px; }
+    .nav { display: grid; gap: 4px; }
+    .nav a {
+      position: relative; display: flex; align-items: center; gap: 12px; padding: 11px 12px;
+      color: var(--muted); border-radius: 4px; text-decoration: none; font-size: 12px; transition: .2s;
+    }
+    .nav a:hover, .nav a.active { color: var(--text); background: #ffffff09; }
+    .nav a.active::before { position: absolute; content: ""; top: 8px; bottom: 8px; left: 0; width: 2px; background: var(--red); }
+    .nav-icon { width: 17px; color: #9ca2a5; text-align: center; font-size: 15px; }
+    .sidebar-bottom { margin-top: auto; }
+    .season-card { padding: 13px; border: 1px solid #ffffff12; background: linear-gradient(135deg, #232628, #191c1f); }
+    .season-heading { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; }
+    .season-emblem { color: var(--orange); font-size: 17px; }
+    .season-card p { color: #858c90; font-size: 10px; line-height: 1.7; margin: 8px 0 0; }
+    .sidebar-profile { display: flex; align-items: center; gap: 9px; padding: 13px 5px 0; margin-top: 15px; border-top: 1px solid #ffffff12; }
+    .small-avatar { width: 30px; height: 30px; display: grid; place-items: center; background: #3b2925; color: #ffb078; font: 800 14px var(--mono); }
+    .profile-label { font-size: 10px; font-weight: 700; }
+    .profile-label span { display: block; color: #737a7f; font-size: 9px; font-weight: 400; margin-top: 2px; }
+    main { width: 100%; max-width: 1450px; margin: 0 auto; padding: 26px 38px 45px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 27px; }
+    .breadcrumb { color: #7e8589; font-size: 10px; }
+    .breadcrumb b { color: #d6d7d4; font-weight: 500; }
+    .top-actions { display: flex; align-items: center; gap: 11px; }
+    .live-status { display: flex; align-items: center; gap: 7px; color: #9ba1a3; font: 9px var(--mono); letter-spacing: .8px; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px #79d9ac88; }
+    .live-dot.offline { background: #e98080; box-shadow: 0 0 10px #e9808088; }
+    .icon-button { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line); background: var(--surface); cursor: pointer; }
+    .mobile-menu { display: none; }
+    .page-heading { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 20px; }
+    .eyebrow { display: flex; align-items: center; gap: 8px; color: var(--orange); font: 10px var(--mono); letter-spacing: 1.5px; }
+    .eyebrow::before { content: ""; width: 18px; height: 2px; background: var(--red); }
+    h1 { margin: 7px 0 0; font: 800 clamp(32px, 4vw, 48px)/.95 var(--display); letter-spacing: .2px; }
+    .page-heading p { color: var(--muted); margin: 9px 0 0; font-size: 11px; }
+    .season-pill { flex: 0 0 auto; padding: 8px 11px; border: 1px solid #ff714533; color: #ff9a6c; font: 9px var(--mono); letter-spacing: .6px; }
+    .season-pill b { color: var(--orange); margin-right: 5px; }
+    .hero {
+      position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(210px, .85fr) minmax(260px, .9fr);
+      gap: 22px; align-items: center; min-height: 200px; padding: 25px 29px; margin-bottom: 16px;
+      border: 1px solid #ffffff12; background: linear-gradient(107deg, #202326 0%, #1b1e20 54%, #351c19 100%);
+    }
+    .hero::after { content: "APEX"; position: absolute; right: -3px; bottom: -38px; color: #ffffff05; font: 900 150px/.9 var(--display); pointer-events: none; }
+    .hero-main, .hero-stats, .search-panel { position: relative; z-index: 1; }
+    .hero-overline { color: #8b9295; font: 9px var(--mono); letter-spacing: 1.3px; }
+    .hero-title { margin: 10px 0 7px; font: 800 clamp(25px, 3vw, 36px)/1.05 var(--display); }
+    .hero-subtitle { color: #a7adaf; font-size: 11px; line-height: 1.7; }
+    .hero-stats { min-height: 126px; display: flex; flex-direction: column; justify-content: center; padding: 12px 0 12px 22px; border-left: 1px solid #ffffff18; }
+    .hero-stat-label { color: #949a9d; font: 9px var(--mono); letter-spacing: 1px; }
+    .hero-stat-value { margin-top: 6px; color: #ffd0b0; font: 800 31px/.95 var(--display); }
+    .hero-stat-foot { margin-top: 8px; color: #a7adaf; font-size: 10px; }
+    .search-panel label { display: block; color: #c4c8c7; font-size: 10px; margin-bottom: 8px; }
+    .search-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+    .search-input, .select-input {
+      min-width: 0; height: 37px; padding: 0 10px; border: 1px solid #ffffff15; outline: none;
+      background: #10121499; color: var(--text); font-size: 10px;
+    }
+    .search-input:focus, .select-input:focus { border-color: #ff7758a6; }
+    .search-input::placeholder { color: #737a7e; }
+    .select-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+    .search-button, .refresh-button {
+      height: 37px; padding: 0 12px; border: 0; background: var(--red); color: #fff;
+      font-size: 10px; font-weight: 800; white-space: nowrap; cursor: pointer; transition: .18s;
+    }
+    .search-button:hover, .refresh-button:hover { background: #ff684f; }
+    .search-note { margin-top: 8px; color: #858c90; font-size: 9px; line-height: 1.6; }
+    .status { min-height: 15px; margin-top: 6px; color: #9ba1a3; font-size: 9px; line-height: 1.5; }
+    .status.error { color: #ff9180; }
+    .status.success { color: var(--green); }
+    .status.warning { color: #ffbd93; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0 0 16px; }
+    .stat-card { position: relative; overflow: hidden; min-height: 105px; padding: 15px 17px; border: 1px solid #ffffff10; background: var(--surface); }
+    .stat-top { display: flex; align-items: center; justify-content: space-between; }
+    .stat-label { color: #91989b; font-size: 10px; }
+    .stat-glyph { color: #6d7478; font-size: 14px; }
+    .stat-value { margin-top: 7px; font: 700 30px/.9 var(--display); }
+    .stat-value.accent { color: var(--orange); }
+    .stat-foot { margin-top: 7px; color: #7c8488; font: 9px var(--mono); }
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1.42fr) minmax(300px, .82fr); gap: 14px; align-items: start; }
+    .panel { min-width: 0; padding: 18px 19px; border: 1px solid #ffffff10; background: var(--surface); }
+    .panel + .panel { margin-top: 14px; }
+    .panel-header { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+    .panel-title { margin: 0; font: 700 19px/.95 var(--display); letter-spacing: .35px; }
+    .panel-subtitle { margin: 5px 0 0; color: #838a8e; font-size: 9px; }
+    .panel-code { color: #697176; font: 9px var(--mono); letter-spacing: .7px; white-space: nowrap; }
+    .toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin: 15px 0 9px; }
+    .filter-button { padding: 6px 9px; border: 1px solid transparent; background: transparent; color: #8d9498; font-size: 9px; cursor: pointer; }
+    .filter-button:hover, .filter-button.active { border-color: #ffffff16; color: var(--text); background: #ffffff08; }
+    .item-count { margin-left: auto; color: #71797d; font: 9px var(--mono); }
+    .race-list, .driver-list { display: grid; gap: 6px; }
+    .race-row {
+      position: relative; display: grid; grid-template-columns: 4px minmax(0, 1fr) auto auto; align-items: center;
+      gap: 12px; min-height: 61px; padding: 8px 11px 8px 0; border: 1px solid #ffffff0a; background: #ffffff03;
+      transition: background .18s;
+    }
+    .race-row:hover { background: #ffffff08; }
+    .race-row.selected { border-color: #ff714544; background: #ff714408; }
+    .race-bar { align-self: stretch; background: var(--red); }
+    .race-row.completed .race-bar { background: var(--green); }
+    .race-name { font-size: 11px; font-weight: 700; }
+    .race-meta { margin-top: 4px; color: #848c90; font-size: 9px; }
+    .race-date { color: #c5c8c6; font: 9px var(--mono); white-space: nowrap; }
+    .race-state { min-width: 58px; text-align: right; color: #ff9a6c; font: 9px var(--mono); }
+    .race-row.completed .race-state { color: var(--green); }
+    .empty-state { padding: 20px 8px; color: #838a8e; text-align: center; font-size: 10px; }
+    .driver-row {
+      display: grid; grid-template-columns: 31px minmax(0, 1fr) auto; align-items: center; gap: 10px;
+      padding: 9px 8px; border: 1px solid #ffffff0a; background: #ffffff03;
+    }
+    .driver-position { color: var(--orange); font: 700 17px var(--display); text-align: center; }
+    .driver-name { font-size: 10px; font-weight: 700; }
+    .driver-team { margin-top: 3px; color: #7d8589; font-size: 9px; }
+    .driver-number { color: #d6d7d4; font: 11px var(--mono); }
+    .detail-box { margin-top: 12px; padding: 11px; border-top: 1px solid #ffffff12; background: #ffffff04; }
+    .detail-top { display: flex; justify-content: space-between; gap: 12px; color: #81898d; font-size: 9px; }
+    .detail-top b { color: var(--text); font-size: 10px; text-align: right; }
+    .detail-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+    .detail-stat { color: #7f878b; font-size: 8px; }
+    .detail-stat b { display: block; margin-top: 4px; color: #eee; font: 600 16px var(--display); }
+    .notice { margin-top: 14px; padding: 11px 12px; border-left: 2px solid var(--orange); background: #ff8a420b; color: #9da3a5; font-size: 9px; line-height: 1.7; }
+    .notice strong { color: #ffbd93; }
+    .detail-page[hidden] { display: none; }
+    #overview.detail-mode > .page-heading,
+    #overview.detail-mode > .hero,
+    #overview.detail-mode > .stats,
+    #overview.detail-mode > .content-grid,
+    #overview.detail-mode > .footnote { display: none; }
+    .detail-page { margin-top: 8px; }
+    .back-button {
+      display: inline-flex; align-items: center; gap: 8px; padding: 8px 11px; margin-bottom: 15px;
+      border: 1px solid #ffffff18; background: #ffffff06; color: #d9dcda; font-size: 10px; cursor: pointer;
+    }
+    .back-button:hover { border-color: #ff714566; color: white; }
+    .detail-hero {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: center;
+      padding: 22px; margin-bottom: 13px; border: 1px solid #ffffff12;
+      background: linear-gradient(107deg, #202326, #1b1e20 58%, #351c19);
+    }
+    .detail-race-title { margin: 6px 0; font: 800 clamp(26px, 3vw, 38px)/1 var(--display); }
+    .detail-race-meta { color: #9ba1a3; font-size: 10px; line-height: 1.7; }
+    .detail-controls { display: flex; flex-wrap: wrap; gap: 9px; margin: 12px 0; }
+    .detail-controls label { display: grid; gap: 5px; color: #969da0; font-size: 9px; }
+    .detail-controls .select-input { min-width: 205px; }
+    .detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 13px; align-items: start; }
+    .detail-grid .panel { margin: 0; }
+    .detail-grid .wide { grid-column: 1 / -1; }
+    .data-table-wrap { max-height: 390px; overflow: auto; margin-top: 12px; border: 1px solid #ffffff0a; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 9px; white-space: nowrap; }
+    .data-table th, .data-table td { padding: 8px 9px; border-bottom: 1px solid #ffffff0c; text-align: left; }
+    .data-table th { position: sticky; top: 0; z-index: 1; background: #222629; color: #a0a6a8; font: 9px var(--mono); }
+    .data-table td { color: #d1d4d2; }
+    .data-table tr:last-child td { border-bottom: 0; }
+    .data-table .mono { font-family: var(--mono); }
+    .data-loading { padding: 15px 8px; color: #92999c; text-align: center; font-size: 9px; }
+    .detail-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+    .detail-metric { padding: 10px; border: 1px solid #ffffff0c; background: #ffffff04; color: #81898d; font-size: 8px; }
+    .detail-metric b { display: block; margin-top: 5px; color: #f0efea; font: 600 17px var(--display); }
+    .footnote { margin-top: 16px; color: #656d71; text-align: right; font-size: 9px; }
+    .toast {
+      position: fixed; right: 23px; bottom: 22px; z-index: 8; padding: 12px 16px; border-left: 2px solid var(--orange);
+      background: #242729; color: #f2f1ec; font-size: 11px; box-shadow: 0 8px 25px #0008;
+      opacity: 0; transform: translateY(8px); pointer-events: none; transition: .22s;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    @media (max-width: 1120px) {
+      .app { grid-template-columns: 200px minmax(0, 1fr); }
+      main { padding: 24px 25px 38px; }
+      .hero { grid-template-columns: minmax(200px, 1fr) minmax(175px, .8fr); gap: 15px; }
+      .search-panel { grid-column: 1 / -1; }
+      .search-row { max-width: 460px; }
+    }
+    @media (max-width: 850px) {
+      .app { display: block; }
+      .sidebar { display: none; position: fixed; width: 230px; box-shadow: 15px 0 50px #0009; }
+      .sidebar.open { display: flex; }
+      main { padding: 22px 22px 36px; }
+      .mobile-menu { display: grid; }
+      .content-grid { grid-template-columns: 1fr; }
+      .right-column { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .right-column .panel + .panel { margin-top: 0; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .detail-grid .wide { grid-column: auto; }
+    }
+    @media (max-width: 570px) {
+      main { padding: 16px 13px 28px; }
+      .topbar { margin-bottom: 20px; }
+      .breadcrumb, .live-status { display: none; }
+      .page-heading { align-items: start; flex-direction: column; gap: 12px; margin-bottom: 15px; }
+      .page-heading p { max-width: 300px; line-height: 1.7; }
+      h1 { font-size: 37px; }
+      .hero { grid-template-columns: 1fr; gap: 14px; padding: 19px; }
+      .hero-stats { min-height: auto; padding: 13px 0 0; border-top: 1px solid #ffffff18; border-left: 0; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+      .stat-card { min-height: 95px; padding: 12px; }
+      .stat-value { font-size: 27px; }
+      .content-grid { gap: 11px; }
+      .right-column { grid-template-columns: 1fr; gap: 11px; }
+      .panel { padding: 15px 13px; }
+      .right-column .panel + .panel { margin-top: 0; }
+      .race-row { gap: 8px; }
+      .race-date { font-size: 8px; }
+      .panel-code { font-size: 8px; }
+      .detail-hero { grid-template-columns: 1fr; padding: 17px; }
+      .detail-controls { display: grid; grid-template-columns: 1fr; }
+      .detail-controls .select-input { width: 100%; }
+      .detail-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .data-table th, .data-table td { padding: 7px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">A</div>
+        <div class="brand-name">APEX<span>F1 RACE CONTROL</span></div>
+      </div>
+      <div class="nav-caption">RACE CONTROL</div>
+      <nav class="nav" aria-label="主要導覽">
+        <a class="active" href="#overview"><span class="nav-icon">▦</span>賽季總覽</a>
+        <a href="#calendar"><span class="nav-icon">◷</span>賽程與分站</a>
+        <a href="#classification"><span class="nav-icon">⌖</span>最近賽事名次</a>
+        <a href="#data-info"><span class="nav-icon">⌁</span>資料說明</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="season-card">
+          <div class="season-heading"><span class="season-emblem">✦</span>F1 賽事資料系統</div>
+          <p>賽程與已完成賽事資料自 OpenF1 載入，無需 API Key。</p>
+        </div>
+        <div class="sidebar-profile">
+          <div class="small-avatar">F1</div>
+          <div class="profile-label">賽事資料<span id="sidebarYear">載入中</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <main id="overview">
+      <header class="topbar">
+        <div class="breadcrumb">F1 RACE CONTROL　/　<b id="breadcrumbLabel">賽季總覽</b></div>
+        <div class="top-actions">
+          <span class="live-status"><span class="live-dot" id="connectionDot"></span><span id="connectionStatus">CONNECTING</span></span>
+          <button class="icon-button mobile-menu" id="menuButton" type="button" aria-label="開啟導覽選單" aria-expanded="false">☰</button>
+          <button class="icon-button" id="refreshButton" type="button" aria-label="重新整理賽事資料" title="重新整理">↻</button>
+        </div>
+      </header>
+
+      <section class="page-heading">
+        <div>
+          <div class="eyebrow">RACE DATA. NO GUESSWORK.</div>
+          <h1>F1 賽事資料系統</h1>
+          <p>查看賽季賽程、分站資訊，以及最近已完成賽事的車手名次。</p>
+        </div>
+        <label class="season-pill" for="seasonSelect"><b>●</b>賽季
+          <select class="select-input" id="seasonSelect" aria-label="選擇 F1 賽季" style="height:28px;margin-left:5px;padding:0 6px"></select>
+        </label>
+      </section>
+
+      <section class="hero" aria-label="最新賽事資訊">
+        <div class="hero-main">
+          <div class="hero-overline" id="heroOverline">LATEST AVAILABLE GRAND PRIX</div>
+          <h2 class="hero-title" id="heroTitle">正在載入賽事資料…</h2>
+          <div class="hero-subtitle" id="heroSubtitle">連線至 OpenF1 公開賽事資料</div>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat-label" id="heroStatLabel">最近已完成分站</div>
+          <div class="hero-stat-value" id="heroStatValue">—</div>
+          <div class="hero-stat-foot" id="heroStatFoot">等待賽程資料</div>
+        </div>
+        <div class="search-panel">
+          <label for="raceSelect">選取分站查看獨立賽事頁面</label>
+          <div class="select-row">
+            <select class="select-input" id="raceSelect" aria-label="選擇 F1 分站"><option value="">載入賽程中…</option></select>
+            <button class="search-button" id="openRaceButton" type="button">查看資料 ↗</button>
+          </div>
+          <div class="search-note">也可以直接點下方賽程中的分站，不需要輸入文字。</div>
+          <div class="status" id="statusMessage" role="status" aria-live="polite">正在取得賽程…</div>
+        </div>
+      </section>
+
+      <section class="stats" aria-label="賽季摘要">
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-label">本季分站</span><span class="stat-glyph">◉</span></div>
+          <div class="stat-value accent" id="raceCount">—</div>
+          <div class="stat-foot" id="raceCountFoot">分站賽程資料</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-label">已完成賽事</span><span class="stat-glyph">⌖</span></div>
+          <div class="stat-value" id="completedCount">—</div>
+          <div class="stat-foot">依賽事結束時間判定</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-label">下一分站</span><span class="stat-glyph">✦</span></div>
+          <div class="stat-value" id="nextRaceValue" style="font-size:20px">—</div>
+          <div class="stat-foot" id="nextRaceFoot">賽程載入後顯示</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-label">最近檢查</span><span class="stat-glyph">⟳</span></div>
+          <div class="stat-value" id="updatedValue" style="font-size:20px">—</div>
+          <div class="stat-foot">每 60 秒檢查，資料暫存 5 分鐘</div>
+        </article>
+      </section>
+
+      <div class="content-grid">
+        <div class="left-column">
+          <article class="panel" id="calendar">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">賽程與分站</h2>
+                <p class="panel-subtitle">按日期排列；點選分站可查看本站練習、排位與正賽時間。</p>
+              </div>
+              <span class="panel-code">SEASON CALENDAR</span>
+            </div>
+            <div class="toolbar" role="group" aria-label="賽程狀態篩選">
+              <button class="filter-button active" type="button" data-filter="all" aria-pressed="true">全部</button>
+              <button class="filter-button" type="button" data-filter="upcoming" aria-pressed="false">未舉行</button>
+              <button class="filter-button" type="button" data-filter="completed" aria-pressed="false">已完成</button>
+              <span class="item-count" id="raceListCount">0 RACES</span>
+            </div>
+            <div class="race-list" id="raceList"><div class="empty-state">載入賽程中…</div></div>
+            <div class="empty-state" id="emptyRaces" hidden>沒有符合搜尋條件的賽事。</div>
+          </article>
+        </div>
+
+        <div class="right-column">
+          <article class="panel" id="classification">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">最近賽事名次</h2>
+                <p class="panel-subtitle" id="classificationSubtitle">已完成正賽的最新可用名次。</p>
+              </div>
+              <span class="panel-code">CLASSIFICATION</span>
+            </div>
+            <div class="driver-list" id="driverList" aria-live="polite">
+              <div class="empty-state">等待賽事資料…</div>
+            </div>
+            <div class="detail-box">
+              <div class="detail-top"><span>資料狀態</span><b id="classificationStatus">尚未載入</b></div>
+              <div class="detail-stats">
+                <div class="detail-stat">車手數<b id="driverCount">—</b></div>
+                <div class="detail-stat">賽事場次<b id="latestSession">—</b></div>
+                <div class="detail-stat">選取分站<b id="selectedMeeting">—</b></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel" id="data-info">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">資料來源與限制</h2>
+                <p class="panel-subtitle">公開資料 API；不需註冊或輸入金鑰。</p>
+              </div>
+              <span class="panel-code">DATA FEED</span>
+            </div>
+            <div class="notice">
+              <strong>關於即時性：</strong>免費 OpenF1 API 提供歷史賽事資料；進行中的比賽即時遙測需付費方案。本頁不會把歷史名次標示成直播。
+            </div>
+            <div class="detail-stats" style="margin-top:16px">
+              <div class="detail-stat">資料提供<b>OpenF1</b></div>
+              <div class="detail-stat">自動更新<b>60 秒</b></div>
+              <div class="detail-stat">目前模式<b>免費資料</b></div>
+            </div>
+            <p class="search-note">API 暫時無法連線時，系統會清楚顯示錯誤；不會以假資料代替。</p>
+          </article>
+        </div>
+      </div>
+      <section class="detail-page" id="raceDetailPage" hidden aria-live="polite">
+        <button class="back-button" id="backToCalendar" type="button">← 返回賽程總覽</button>
+        <div class="detail-hero">
+          <div>
+            <div class="hero-overline" id="detailOverline">GRAND PRIX HISTORY</div>
+            <h2 class="detail-race-title" id="detailRaceTitle">賽事詳情</h2>
+            <div class="detail-race-meta" id="detailRaceMeta">選取賽段載入歷史資料</div>
+          </div>
+          <div class="hero-stats" style="min-height:auto;padding-left:18px">
+            <div class="hero-stat-label">所選賽段</div>
+            <div class="hero-stat-value" id="detailSessionType">—</div>
+            <div class="hero-stat-foot" id="detailSessionDate">—</div>
+          </div>
+        </div>
+        <div class="detail-controls">
+          <label>賽段
+            <select class="select-input" id="detailSessionSelect" aria-label="選擇賽事賽段"></select>
+          </label>
+          <label>車手
+            <select class="select-input" id="detailDriverSelect" aria-label="選擇車手"><option value="">全部車手</option></select>
+          </label>
+        </div>
+        <div class="status" id="detailStatus" role="status" aria-live="polite">等待選取賽事。</div>
+        <div class="detail-grid">
+          <article class="panel wide">
+            <div class="panel-header"><div><h3 class="panel-title">賽事名次</h3><p class="panel-subtitle">各車手在所選賽段的最新位置。</p></div><span class="panel-code">CLASSIFICATION</span></div>
+            <div class="data-table-wrap" id="resultsTable"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-header"><div><h3 class="panel-title">單圈與分段時間</h3><p class="panel-subtitle">各圈、三段時間和速度點。</p></div><span class="panel-code">LAP TIMES</span></div>
+            <div class="detail-metrics" id="lapMetrics"></div>
+            <div class="data-table-wrap" id="lapsTable"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-header"><div><h3 class="panel-title">輪胎與進站策略</h3><p class="panel-subtitle">輪胎配方、使用圈數與 pit stop。</p></div><span class="panel-code">TYRE / PIT</span></div>
+            <div class="data-table-wrap" id="stintsTable"></div>
+            <div class="data-table-wrap" id="pitTable"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-header"><div><h3 class="panel-title">賽車間距</h3><p class="panel-subtitle">所選車手與領先者及前車的時間差。</p></div><span class="panel-code">GAP / INTERVAL</span></div>
+            <div class="data-table-wrap" id="intervalsTable"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-header"><div><h3 class="panel-title">天氣與賽道狀況</h3><p class="panel-subtitle">所選賽段可用的天氣觀測值。</p></div><span class="panel-code">WEATHER</span></div>
+            <div class="detail-metrics" id="weatherMetrics"></div>
+            <div class="data-table-wrap" id="weatherTable"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-header"><div><h3 class="panel-title">超車紀錄</h3><p class="panel-subtitle">資料提供時列出超車車手與圈數。</p></div><span class="panel-code">OVERTAKES</span></div>
+            <div class="data-table-wrap" id="overtakesTable"></div>
+          </article>
+          <article class="panel wide">
+            <div class="panel-header"><div><h3 class="panel-title">FIA 賽事事件</h3><p class="panel-subtitle">旗號、賽道狀況、裁判通告和賽段訊息。</p></div><span class="panel-code">RACE CONTROL</span></div>
+            <div class="data-table-wrap" id="raceControlTable"></div>
+          </article>
+          <article class="panel wide">
+            <div class="panel-header"><div><h3 class="panel-title">車載遙測抽樣</h3><p class="panel-subtitle">顯示車手選定賽段中高於 280 km/h 的歷史樣本。</p></div><span class="panel-code">CAR TELEMETRY</span></div>
+            <div class="detail-metrics" id="telemetryMetrics"></div>
+            <div class="data-table-wrap" id="telemetryTable"></div>
+          </article>
+        </div>
+      </section>
+      <div class="footnote">APEX F1 RACE CONTROL　・　賽程與歷史資料由 <a href="https://openf1.org/" target="_blank" rel="noopener noreferrer">OpenF1</a> 提供</div>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const API_BASE = "https://api.openf1.org/v1";
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+    const state = {
+      meetings: [], sessions: [], drivers: [], positions: [], selectedMeeting: null,
+      selectedSessions: [], selectedData: {}, filter: "all"
+    };
+    let toastTimer;
+    let refreshTimer;
+    let requestController;
+    let lastRequestAt = 0;
+    let requestQueue = Promise.resolve();
+    let detailController;
+    let driverDataController;
+    const responseCache = new Map();
+    const CACHE_TTL = 5 * 60 * 1000;
+    let requestBlockedUntil = 0;
+
+    function showToast(message) {
+      const toast = $("#toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+
+    function setStatus(message, kind = "") {
+      const status = $("#statusMessage");
+      status.textContent = message;
+      status.className = `status${kind ? ` ${kind}` : ""}`;
+      $("#connectionStatus").textContent = kind === "error" ? "DATA FEED ERROR" : kind === "success" ? "DATA FEED ONLINE" : "UPDATING";
+      $("#connectionDot").classList.toggle("offline", kind === "error");
+    }
+
+    async function fetchJson(url, signal) {
+      if (signal?.aborted) throw new DOMException("Request was aborted.", "AbortError");
+      const cached = responseCache.get(url);
+      if (cached && Date.now() - cached.time < CACHE_TTL) return cached.data;
+      if (cached) responseCache.delete(url);
+      const task = requestQueue.then(async () => {
+        if (signal?.aborted) throw new DOMException("Request was aborted.", "AbortError");
+        if (Date.now() < requestBlockedUntil) {
+          throw new Error("OpenF1 免費請求額度已用完，請稍後再重新整理。");
+        }
+        const wait = Math.max(0, 1250 - (Date.now() - lastRequestAt));
+        if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
+        if (signal?.aborted) throw new DOMException("Request was aborted.", "AbortError");
+        lastRequestAt = Date.now();
+        const response = await fetch(url, { headers: { Accept: "application/json" }, signal });
+        if (response.status === 429) {
+          const retryAfter = Number(response.headers.get("Retry-After"));
+          requestBlockedUntil = Date.now() + (Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 60000);
+          throw new Error("OpenF1 免費請求額度已用完，請約 60 秒後再重新整理。");
+        }
+        if (!response.ok) throw new Error(`資料服務回應 HTTP ${response.status}。請稍後重試。`);
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error("資料服務回傳格式不符預期。");
+        responseCache.set(url, { data, time: Date.now() });
+        if (responseCache.size > 180) responseCache.delete(responseCache.keys().next().value);
+        return data;
+      });
+      requestQueue = task.catch(() => {});
+      return task;
+    }
+
+    function formatDate(value, options = {}) {
+      if (!value) return "時間未提供";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "時間未提供";
+      return new Intl.DateTimeFormat("zh-Hant", {
+        year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, ...options
+      }).format(date);
+    }
+
+    function getYear() {
+      return Number($("#seasonSelect").value);
+    }
+
+    function createRaceName(session) {
+      const meeting = state.meetings.find((item) => item.meeting_key === session.meeting_key);
+      if (meeting?.meeting_name && meeting.meeting_name !== "Pre-Season Testing") return meeting.meeting_name;
+      if (session.meeting_name) return session.meeting_name;
+      return `${session.country_name || session.location || "F1"} Grand Prix`;
+    }
+
+    function renderStats() {
+      const now = Date.now();
+      const completed = state.sessions.filter((session) => new Date(session.date_end).getTime() < now);
+      const next = state.sessions.find((session) => new Date(session.date_start).getTime() > now);
+      const inProgress = state.sessions.find((session) =>
+        new Date(session.date_start).getTime() <= now && new Date(session.date_end).getTime() >= now
+      );
+      $("#raceCount").textContent = String(state.sessions.length);
+      $("#raceCountFoot").textContent = `${getYear()} 賽季正賽分站`;
+      $("#completedCount").textContent = String(completed.length);
+      $("#nextRaceValue").textContent = inProgress
+        ? "進行中"
+        : next ? (next.country_name || next.circuit_short_name || "待定") : "賽季結束";
+      $("#nextRaceFoot").textContent = inProgress
+        ? `${inProgress.country_name || inProgress.circuit_short_name} ・ 即時遙測需付費資料源`
+        : next ? formatDate(next.date_start, { hour: undefined, minute: undefined }) : "目前沒有後續分站資料";
+      $("#updatedValue").textContent = new Intl.DateTimeFormat("zh-Hant", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date());
+      $("#sidebarYear").textContent = `${getYear()} 賽季`;
+      const latest = completed[completed.length - 1];
+      $("#heroTitle").textContent = latest ? createRaceName(latest) : (next ? createRaceName(next) : `${getYear()} 賽季`);
+      $("#heroSubtitle").textContent = latest
+        ? `${latest.circuit_short_name || latest.location || "賽道"} ・ ${latest.country_name || ""} ・ 正賽 ${formatDate(latest.date_start)}`
+        : next ? `下一分站：${next.country_name || ""} ・ ${formatDate(next.date_start)}` : "目前沒有已完成的正賽資料";
+      $("#heroOverline").textContent = latest ? "LATEST COMPLETED GRAND PRIX" : "NEXT GRAND PRIX";
+      $("#heroStatLabel").textContent = latest ? "最近正賽場次" : "本季賽事場次";
+      $("#heroStatValue").textContent = latest ? String(latest.session_key) : "—";
+      $("#heroStatFoot").textContent = latest ? `資料日期 ${formatDate(latest.date_end)}` : "正賽資料尚未提供";
+    }
+
+    function renderRaces() {
+      const list = $("#raceList");
+      list.replaceChildren();
+      const now = Date.now();
+      const filtered = state.sessions.filter((session) => {
+        const completed = new Date(session.date_end).getTime() < now;
+        return state.filter === "all" || (state.filter === "completed" ? completed : !completed);
+      });
+      $("#raceListCount").textContent = `${filtered.length} / ${state.sessions.length} RACES`;
+      $("#emptyRaces").hidden = filtered.length > 0 || !state.sessions.length;
+      const raceSelect = $("#raceSelect");
+      const selectedValue = raceSelect.value;
+      raceSelect.replaceChildren();
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = state.sessions.length ? "選擇一個分站…" : "目前沒有賽程";
+      raceSelect.append(placeholder);
+      state.sessions.forEach((session) => {
+        const option = document.createElement("option");
+        option.value = String(session.meeting_key);
+        option.textContent = `${formatDate(session.date_start, { year: undefined, hour: undefined, minute: undefined })}　${createRaceName(session)}`;
+        raceSelect.append(option);
+      });
+      if (state.sessions.some((session) => String(session.meeting_key) === selectedValue)) {
+        raceSelect.value = selectedValue;
+      }
+      if (!state.sessions.length) {
+        list.innerHTML = '<div class="empty-state">此賽季目前沒有可用的正賽賽程資料。</div>';
+        return;
+      }
+      filtered.forEach((session) => {
+        const round = state.sessions.indexOf(session) + 1;
+        const completed = new Date(session.date_end).getTime() < now;
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = `race-row${completed ? " completed" : ""}${state.selectedMeeting?.meeting_key === session.meeting_key ? " selected" : ""}`;
+        row.style.width = "100%";
+        row.style.color = "inherit";
+        row.style.textAlign = "left";
+        row.style.cursor = "pointer";
+        const bar = document.createElement("span");
+        bar.className = "race-bar";
+        const details = document.createElement("span");
+        const name = document.createElement("span");
+        name.className = "race-name";
+        name.textContent = `${String(round).padStart(2, "0")}　${createRaceName(session)}`;
+        const meta = document.createElement("span");
+        meta.className = "race-meta";
+        meta.textContent = `${session.circuit_short_name || session.location || "賽道待定"} ・ ${session.country_name || "國家待定"} ・ ${session.session_name || "Race"}`;
+        details.append(name, meta);
+        const date = document.createElement("span");
+        date.className = "race-date";
+        date.textContent = formatDate(session.date_start, { year: undefined, hour: undefined, minute: undefined });
+        const badge = document.createElement("span");
+        badge.className = "race-state";
+        badge.textContent = completed ? "已完成" : new Date(session.date_start).getTime() <= now ? "進行中" : "未舉行";
+        row.append(bar, details, date, badge);
+        row.addEventListener("click", () => openRacePage(session));
+        list.append(row);
+      });
+    }
+
+    function renderDrivers() {
+      const list = $("#driverList");
+      list.replaceChildren();
+      const latestByDriver = new Map();
+      state.positions.forEach((position) => {
+        const existing = latestByDriver.get(position.driver_number);
+        if (!existing || new Date(position.date).getTime() > new Date(existing.date).getTime()) {
+          latestByDriver.set(position.driver_number, position);
+        }
+      });
+      const classified = [...latestByDriver.values()].sort((a, b) => a.position - b.position);
+      const driverByNumber = new Map(state.drivers.map((driver) => [driver.driver_number, driver]));
+      if (!classified.length) {
+        list.innerHTML = '<div class="empty-state">這場賽事沒有可用的名次資料。</div>';
+        $("#driverCount").textContent = "0";
+        return;
+      }
+      classified.forEach((position) => {
+        const driver = driverByNumber.get(position.driver_number);
+        const row = document.createElement("div");
+        row.className = "driver-row";
+        const place = document.createElement("span");
+        place.className = "driver-position";
+        place.textContent = String(position.position);
+        const identity = document.createElement("span");
+        const name = document.createElement("span");
+        name.className = "driver-name";
+        name.textContent = driver ? `${driver.name_acronym || ""}　${driver.full_name || driver.broadcast_name || "未知車手"}` : `車手 #${position.driver_number}`;
+        const team = document.createElement("span");
+        team.className = "driver-team";
+        team.textContent = driver?.team_name || "車隊資料未提供";
+        identity.append(name, team);
+        const number = document.createElement("span");
+        number.className = "driver-number";
+        number.textContent = `#${position.driver_number}`;
+        row.append(place, identity, number);
+        list.append(row);
+      });
+      $("#driverCount").textContent = String(classified.length);
+    }
+
+    async function loadLatestClassification(signal) {
+      const now = Date.now();
+      const pastRaces = state.sessions.filter((session) =>
+        new Date(session.date_end).getTime() < now && !session.is_cancelled
+      );
+      const latest = pastRaces[pastRaces.length - 1];
+      state.positions = [];
+      state.drivers = [];
+      if (!latest) {
+        $("#classificationSubtitle").textContent = "本賽季尚無已完成正賽。";
+        $("#classificationStatus").textContent = "尚無已完成正賽";
+        $("#latestSession").textContent = "—";
+        renderDrivers();
+        return;
+      }
+      $("#classificationSubtitle").textContent = `${createRaceName(latest)} ・ ${formatDate(latest.date_start, { year: undefined, hour: undefined, minute: undefined })}`;
+      $("#classificationStatus").textContent = "載入名次…";
+      $("#latestSession").textContent = String(latest.session_key);
+      const [drivers, positions] = await Promise.all([
+        fetchJson(`${API_BASE}/drivers?session_key=${encodeURIComponent(latest.session_key)}`, signal),
+        fetchJson(`${API_BASE}/position?session_key=${encodeURIComponent(latest.session_key)}`, signal)
+      ]);
+      state.drivers = drivers;
+      state.positions = positions;
+      renderDrivers();
+      $("#classificationStatus").textContent = positions.length ? "歷史名次已載入" : "沒有名次資料";
+    }
+
+    async function loadSeason() {
+      if (requestController) requestController.abort();
+      requestController = new AbortController();
+      const { signal } = requestController;
+      const year = getYear();
+      setStatus(`正在載入 ${year} 賽季賽程…`);
+      $("#raceList").innerHTML = '<div class="empty-state">正在取得賽程資料…</div>';
+      try {
+        const sessions = await fetchJson(`${API_BASE}/sessions?year=${year}&session_type=Race`, signal);
+        const meetings = await fetchJson(`${API_BASE}/meetings?year=${year}`, signal);
+        state.meetings = meetings;
+        state.selectedMeeting = null;
+        state.sessions = sessions.filter((session) => session.session_name === "Race" && !session.is_cancelled).sort((a, b) =>
+          new Date(a.date_start).getTime() - new Date(b.date_start).getTime()
+        );
+        renderStats();
+        renderRaces();
+        if (!signal.aborted) handleRoute();
+        try {
+          await loadLatestClassification(signal);
+        } catch (error) {
+          if (signal.aborted) return;
+          $("#classificationStatus").textContent = "名次資料暫時無法載入";
+          $("#driverList").innerHTML = '<div class="empty-state">賽程已載入，但名次資料目前無法取得。請稍後重新整理。</div>';
+          setStatus(`賽程已載入；名次資料無法取得：${error instanceof TypeError ? "請檢查網路連線。" : error.message}`, "warning");
+          return;
+        }
+        if (!signal.aborted) setStatus(`已載入 ${year} 賽季 ${state.sessions.length} 個正賽分站；名次為最近已完成賽事資料。`, "success");
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        state.sessions = [];
+        state.positions = [];
+        state.drivers = [];
+        state.meetings = [];
+        renderStats();
+        renderRaces();
+        renderDrivers();
+        $("#classificationStatus").textContent = "載入失敗";
+        setStatus(error instanceof TypeError ? "無法連線至 OpenF1。請檢查網路，並使用本機伺服器或 HTTPS 開啟頁面。" : error.message, "error");
+      }
+    }
+
+    function renderDataTable(target, headers, rows, emptyText = "這個賽段沒有可用資料。") {
+      const container = typeof target === "string" ? $(`#${target}`) : target;
+      container.replaceChildren();
+      if (!rows.length) {
+        const empty = document.createElement("div");
+        empty.className = "data-loading";
+        empty.textContent = emptyText;
+        container.append(empty);
+        return;
+      }
+      const table = document.createElement("table");
+      table.className = "data-table";
+      const head = document.createElement("thead");
+      const headRow = document.createElement("tr");
+      headers.forEach((label) => {
+        const th = document.createElement("th");
+        th.textContent = label;
+        headRow.append(th);
+      });
+      head.append(headRow);
+      const body = document.createElement("tbody");
+      rows.forEach((values) => {
+        const row = document.createElement("tr");
+        values.forEach((value) => {
+          const cell = document.createElement("td");
+          if (value instanceof Node) cell.append(value);
+          else cell.textContent = value === null || value === undefined || value === "" ? "—" : String(value);
+          row.append(cell);
+        });
+        body.append(row);
+      });
+      table.append(head, body);
+      container.append(table);
+    }
+
+    function formatLapTime(seconds) {
+      if (seconds === null || seconds === undefined || !Number.isFinite(Number(seconds))) return "—";
+      const total = Number(seconds);
+      const minutes = Math.floor(total / 60);
+      return `${minutes}:${(total - minutes * 60).toFixed(3).padStart(6, "0")}`;
+    }
+
+    function formatFixed(value, digits = 3) {
+      return value !== null && value !== undefined && Number.isFinite(Number(value))
+        ? Number(value).toFixed(digits)
+        : "—";
+    }
+
+    function driverLabel(number, drivers) {
+      const driver = drivers.find((item) => Number(item.driver_number) === Number(number));
+      return driver ? `${driver.name_acronym || driver.full_name} (#${number})` : `車手 #${number}`;
+    }
+
+    function renderDetailResults(positions, drivers) {
+      const latest = new Map();
+      positions.forEach((item) => {
+        const current = latest.get(item.driver_number);
+        if (!current || new Date(item.date).getTime() > new Date(current.date).getTime()) latest.set(item.driver_number, item);
+      });
+      const rows = [...latest.values()]
+        .sort((a, b) => a.position - b.position)
+        .map((item) => [
+          item.position,
+          driverLabel(item.driver_number, drivers),
+          drivers.find((driver) => Number(driver.driver_number) === Number(item.driver_number))?.team_name || "—",
+          formatDate(item.date, { year: undefined }),
+          item.position === 1 ? "領先" : "完成位置"
+        ]);
+      renderDataTable("resultsTable", ["名次", "車手", "車隊", "最後更新", "狀態"], rows, "本賽段尚未有位置資料。未舉行或資料尚未公開的賽事會顯示空白。");
+    }
+
+    function renderLapData(laps, driver) {
+      const validLaps = laps.filter((lap) => Number.isFinite(Number(lap.lap_duration)) && !lap.is_pit_out_lap);
+      const bestLap = validLaps.length ? Math.min(...validLaps.map((lap) => Number(lap.lap_duration))) : null;
+      const topSpeed = laps.reduce((max, lap) => Math.max(max, Number(lap.st_speed) || 0, Number(lap.i1_speed) || 0, Number(lap.i2_speed) || 0), 0);
+      $("#lapMetrics").replaceChildren();
+      [
+        ["記錄圈數", laps.length],
+        ["最快圈", formatLapTime(bestLap)],
+        ["最高測速", topSpeed ? `${topSpeed} km/h` : "—"],
+        ["車手", driver ? driver.name_acronym || `#${driver.driver_number}` : "—"]
+      ].forEach(([label, value]) => {
+        const metric = document.createElement("div");
+        metric.className = "detail-metric";
+        const name = document.createElement("span");
+        name.textContent = label;
+        const output = document.createElement("b");
+        output.textContent = String(value);
+        metric.append(name, output);
+        $("#lapMetrics").append(metric);
+      });
+      const rows = laps.map((lap) => [
+        lap.lap_number,
+        formatLapTime(lap.lap_duration),
+        formatFixed(lap.duration_sector_1),
+        formatFixed(lap.duration_sector_2),
+        formatFixed(lap.duration_sector_3),
+        lap.st_speed ? `${lap.st_speed} km/h` : "—",
+        lap.is_pit_out_lap ? "是" : "否"
+      ]);
+      renderDataTable("lapsTable", ["圈數", "圈速", "S1", "S2", "S3", "終點速", "出站圈"], rows, "所選賽段沒有這位車手的單圈資料。");
+    }
+
+    function renderTelemetry(data) {
+      const samples = data.slice(-100).reverse();
+      const maxSpeed = data.reduce((max, item) => Math.max(max, Number(item.speed) || 0), 0);
+      const rows = samples.slice(0, 60).map((item) => [
+        formatDate(item.date, { year: undefined }),
+        item.speed === null ? "—" : `${item.speed} km/h`,
+        item.rpm,
+        item.n_gear,
+        item.throttle === null ? "—" : `${item.throttle}%`,
+        item.brake === null ? "—" : `${item.brake}%`,
+        item.drs
+      ]);
+      $("#telemetryMetrics").replaceChildren();
+      [["高速抽樣筆數", data.length], ["抽樣最高速度", maxSpeed ? `${maxSpeed} km/h` : "—"]].forEach(([label, value]) => {
+        const metric = document.createElement("div");
+        metric.className = "detail-metric";
+        const name = document.createElement("span");
+        name.textContent = label;
+        const output = document.createElement("b");
+        output.textContent = String(value);
+        metric.append(name, output);
+        $("#telemetryMetrics").append(metric);
+      });
+      renderDataTable("telemetryTable", ["時間", "速度", "RPM", "檔位", "油門", "煞車", "DRS"], rows, "所選賽段沒有可用的車載遙測資料。");
+    }
+
+    function renderWeather(data) {
+      const latest = data[data.length - 1];
+      $("#weatherMetrics").replaceChildren();
+      [
+        ["空氣", latest && latest.air_temperature !== null ? `${latest.air_temperature} °C` : "—"],
+        ["賽道", latest && latest.track_temperature !== null ? `${latest.track_temperature} °C` : "—"],
+        ["濕度", latest && latest.humidity !== null ? `${latest.humidity}%` : "—"],
+        ["降雨", latest ? (latest.rainfall ? "有" : "無") : "—"]
+      ].forEach(([label, value]) => {
+        const metric = document.createElement("div");
+        metric.className = "detail-metric";
+        const name = document.createElement("span");
+        name.textContent = label;
+        const output = document.createElement("b");
+        output.textContent = String(value);
+        metric.append(name, output);
+        $("#weatherMetrics").append(metric);
+      });
+    }
+
+    async function loadDriverDetailData(session, driver, signal) {
+      if (!driver) {
+        renderDataTable("lapsTable", [], [], "此賽段尚無車手資料，無法載入單圈。");
+        renderDataTable("stintsTable", [], [], "此賽段尚無車手資料，無法載入輪胎策略。");
+        renderDataTable("intervalsTable", [], [], "此賽段尚無車手資料，無法載入車手間距。");
+        renderDataTable("telemetryTable", [], [], "此賽段尚無車手資料，無法載入車載遙測。");
+        $("#lapMetrics").replaceChildren();
+        $("#telemetryMetrics").replaceChildren();
+        return;
+      }
+      const driverParam = driver ? `&driver_number=${encodeURIComponent(driver.driver_number)}` : "";
+      for (const [endpoint, target, render] of [
+        ["laps", "lapsTable", (data) => renderLapData(data, driver)],
+        ["stints", "stintsTable", (data) => renderDataTable("stintsTable", ["車手", "輪胎", "胎齡", "起始圈", "結束圈"], data.map((item) => [
+          driverLabel(item.driver_number, state.drivers), item.compound, item.tyre_age_at_start, item.lap_start, item.lap_end
+        ]), "所選賽段沒有輪胎 stint 資料。")],
+        ["intervals", "intervalsTable", (data) => renderDataTable("intervalsTable", ["時間", "與領先者", "與前車"], data.slice(-100).reverse().map((item) => [
+          formatDate(item.date, { year: undefined }),
+          item.gap_to_leader !== null && item.gap_to_leader !== undefined ? `${formatFixed(item.gap_to_leader)} 秒` : "—",
+          item.interval !== null && item.interval !== undefined ? `${formatFixed(item.interval)} 秒` : "—"
+        ]), "所選賽段沒有間距資料。")],
+        ["car_data", "telemetryTable", renderTelemetry]
+      ]) {
+        try {
+          const telemetryFilter = endpoint === "car_data" ? "&speed>=280" : "";
+          const data = await fetchJson(`${API_BASE}/${endpoint}?session_key=${encodeURIComponent(session.session_key)}${driverParam}${telemetryFilter}`, signal);
+          render(data);
+        } catch (error) {
+          if (error.name === "AbortError") throw error;
+          renderDataTable(target, [], [], `${endpoint} 資料無法載入：${error.message}`);
+        }
+      }
+    }
+
+    async function loadOptionalData(endpoint, query, signal, target, headers, mapRows, emptyText) {
+      try {
+        const data = await fetchJson(`${API_BASE}/${endpoint}?${query}`, signal);
+        renderDataTable(target, headers, mapRows(data), emptyText);
+        return true;
+      } catch (error) {
+        if (error.name === "AbortError") throw error;
+        renderDataTable(target, [], [], `${endpoint} 資料無法載入：${error.message}`);
+        return false;
+      }
+    }
+
+    async function loadSelectedSession() {
+      const session = state.selectedSessions.find((item) => String(item.session_key) === $("#detailSessionSelect").value);
+      if (!session) return;
+      if (detailController) detailController.abort();
+      if (driverDataController) driverDataController.abort();
+      detailController = new AbortController();
+      const { signal } = detailController;
+      const meeting = state.selectedMeeting;
+      const sessionSelect = $("#detailSessionSelect");
+      const option = sessionSelect.options[sessionSelect.selectedIndex];
+      $("#detailSessionType").textContent = session.session_name || session.session_type;
+      $("#detailSessionDate").textContent = formatDate(session.date_start);
+      $("#detailRaceMeta").textContent = `${meeting.circuit_short_name || meeting.location || "賽道"} ・ ${meeting.country_name || ""} ・ ${formatDate(session.date_start)}　至　${formatDate(session.date_end)}`;
+      $("#detailStatus").textContent = `正在載入 ${option?.textContent || session.session_name} 的歷史資料…`;
+      $("#detailStatus").classList.remove("error");
+      history.replaceState(null, "", `#race/${getYear()}/${meeting.meeting_key}/${session.session_key}`);
+      for (const id of ["resultsTable", "lapsTable", "stintsTable", "pitTable", "intervalsTable", "weatherTable", "overtakesTable", "raceControlTable", "telemetryTable"]) {
+        renderDataTable(id, [], [], "資料載入中…");
+      }
+      $("#lapMetrics").replaceChildren();
+      $("#weatherMetrics").replaceChildren();
+      $("#telemetryMetrics").replaceChildren();
+      try {
+        state.drivers = await fetchJson(`${API_BASE}/drivers?session_key=${encodeURIComponent(session.session_key)}`, signal);
+        const driverSelect = $("#detailDriverSelect");
+        const previousDriver = driverSelect.value;
+        driverSelect.replaceChildren();
+        state.drivers
+          .slice()
+          .sort((a, b) => (a.name_acronym || "").localeCompare(b.name_acronym || ""))
+          .forEach((driver) => {
+            const driverOption = document.createElement("option");
+            driverOption.value = String(driver.driver_number);
+            driverOption.textContent = `${driver.name_acronym || driver.full_name} (#${driver.driver_number})`;
+            driverSelect.append(driverOption);
+          });
+        if (state.drivers.some((driver) => String(driver.driver_number) === previousDriver)) driverSelect.value = previousDriver;
+        else if (state.drivers.length) driverSelect.value = String(state.drivers[0].driver_number);
+        const selectedDriver = state.drivers.find((driver) => String(driver.driver_number) === driverSelect.value) || null;
+        const issues = [];
+        try {
+          const positions = await fetchJson(`${API_BASE}/position?session_key=${encodeURIComponent(session.session_key)}`, signal);
+          renderDetailResults(positions, state.drivers);
+        } catch (error) {
+          if (error.name === "AbortError") throw error;
+          renderDataTable("resultsTable", [], [], `名次資料無法載入：${error.message}`);
+          issues.push("名次");
+        }
+        await loadDriverDetailData(session, selectedDriver, signal);
+        if (!await loadOptionalData("pit", `session_key=${encodeURIComponent(session.session_key)}`, signal, "pitTable",
+          ["車手", "進站圈", "Pit lane", "進站持續"], (data) => data.map((item) => [
+            driverLabel(item.driver_number, state.drivers), item.lap_number,
+            item.lane_duration !== null && item.lane_duration !== undefined ? `${formatFixed(item.lane_duration, 1)} 秒` : "—",
+            item.pit_duration !== null && item.pit_duration !== undefined ? `${formatFixed(item.pit_duration, 1)} 秒` : "—"
+          ]), "此賽段沒有進站資料。")) issues.push("進站");
+        if (!await loadOptionalData("weather", `session_key=${encodeURIComponent(session.session_key)}`, signal, "weatherTable",
+          ["觀測時間", "氣溫", "賽道溫度", "濕度", "風速", "降雨"], (data) => {
+            renderWeather(data);
+            return data.slice(-40).reverse().map((item) => [
+              formatDate(item.date, { year: undefined }),
+              item.air_temperature === null ? "—" : `${item.air_temperature} °C`,
+              item.track_temperature === null ? "—" : `${item.track_temperature} °C`,
+              item.humidity === null ? "—" : `${item.humidity}%`,
+              item.wind_speed === null ? "—" : `${item.wind_speed} m/s`, item.rainfall ? "有" : "無"
+            ]);
+          }, "此賽段沒有天氣觀測資料。")) issues.push("天氣");
+        if (!await loadOptionalData("race_control", `session_key=${encodeURIComponent(session.session_key)}`, signal, "raceControlTable",
+          ["時間", "圈數", "類別", "旗號", "訊息"], (data) => data.slice(-300).reverse().map((item) => [
+            formatDate(item.date, { year: undefined }), item.lap_number, item.category, item.flag, item.message
+          ]), "此賽段沒有賽事控制事件。")) issues.push("賽事事件");
+        if (!await loadOptionalData("overtakes", `session_key=${encodeURIComponent(session.session_key)}`, signal, "overtakesTable",
+          ["時間", "超車車手", "被超車", "完成後名次"], (data) => data.map((item) => [
+            formatDate(item.date, { year: undefined }),
+            driverLabel(item.overtaking_driver_number, state.drivers),
+            driverLabel(item.overtaken_driver_number, state.drivers), item.position
+          ]), "此賽段沒有可用的超車紀錄。")) issues.push("超車");
+        if (!signal.aborted) {
+          $("#detailStatus").textContent = issues.length
+            ? `已載入可用資料；${issues.join("、")}資料暫時無法取得。`
+            : `已載入 ${state.drivers.length} 位車手與此賽段可用的歷史資料。未提供的項目會顯示空白。`;
+        }
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        $("#detailStatus").textContent = `部分賽事資料載入失敗：${error.message}`;
+        $("#detailStatus").classList.add("error");
+      }
+    }
+
+    async function openRacePage(session, routeSessionKey = "", updateHash = true) {
+      if (!session) return;
+      state.selectedMeeting = session;
+      $("#overview").classList.add("detail-mode");
+      $("#raceDetailPage").hidden = false;
+      $("#breadcrumbLabel").textContent = createRaceName(session);
+      $("#detailRaceTitle").textContent = createRaceName(session);
+      $("#detailOverline").textContent = `${getYear()} GRAND PRIX HISTORY`;
+      $("#selectedMeeting").textContent = session.country_name || session.circuit_short_name || "—";
+      if (updateHash) location.hash = `race/${getYear()}/${session.meeting_key}`;
+      if (detailController) detailController.abort();
+      detailController = new AbortController();
+      const { signal } = detailController;
+      $("#detailStatus").textContent = "正在取得本站所有賽段…";
+      $("#detailStatus").classList.remove("error");
+      document.title = `${createRaceName(session)} // APEX F1`;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      try {
+        state.selectedSessions = await fetchJson(`${API_BASE}/sessions?meeting_key=${encodeURIComponent(session.meeting_key)}`, signal);
+        state.selectedSessions.sort((a, b) => new Date(a.date_start).getTime() - new Date(b.date_start).getTime());
+        const select = $("#detailSessionSelect");
+        select.replaceChildren();
+        state.selectedSessions.forEach((item) => {
+          const option = document.createElement("option");
+          option.value = String(item.session_key);
+          option.textContent = `${item.session_name || item.session_type}　・　${formatDate(item.date_start, { year: undefined })}`;
+          select.append(option);
+        });
+        const initial = state.selectedSessions.find((item) => String(item.session_key) === String(routeSessionKey)) ||
+          state.selectedSessions.find((item) => item.session_name === "Race") || state.selectedSessions[0];
+        if (!initial) {
+          $("#detailStatus").textContent = "OpenF1 暫無此分站的賽段資料。";
+          return;
+        }
+        select.value = String(initial.session_key);
+        await loadSelectedSession();
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        $("#detailStatus").textContent = `無法載入此分站：${error.message}`;
+        $("#detailStatus").classList.add("error");
+      }
+    }
+
+    function showCalendar() {
+      if (detailController) detailController.abort();
+      $("#overview").classList.remove("detail-mode");
+      $("#raceDetailPage").hidden = true;
+      $("#breadcrumbLabel").textContent = "賽季總覽";
+      document.title = "APEX // F1 賽事資料系統";
+      state.selectedMeeting = null;
+      renderRaces();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function handleRoute() {
+      const match = location.hash.match(/^#race\/(\d{4})\/(\d+)(?:\/(\d+))?$/);
+      if (!match) {
+        if ($("#overview").classList.contains("detail-mode")) showCalendar();
+        return;
+      }
+      if (Number($("#seasonSelect").value) !== Number(match[1])) {
+        $("#seasonSelect").value = match[1];
+        loadSeason();
+        return;
+      }
+      const session = state.sessions.find((item) => String(item.meeting_key) === match[2]);
+      if (session && (!$("#overview").classList.contains("detail-mode") || String(state.selectedMeeting?.meeting_key) !== match[2])) {
+        openRacePage(session, match[3] || "", false);
+      }
+    }
+
+    function setFilter(filter, button) {
+      state.filter = filter;
+      $$(".filter-button").forEach((item) => {
+        const active = item === button;
+        item.classList.toggle("active", active);
+        item.setAttribute("aria-pressed", String(active));
+      });
+      renderRaces();
+    }
+
+    function init() {
+      const seasonSelect = $("#seasonSelect");
+      const currentYear = new Date().getFullYear();
+      for (let year = currentYear; year >= 2023; year -= 1) {
+        const option = document.createElement("option");
+        option.value = String(year);
+        option.textContent = String(year);
+        seasonSelect.append(option);
+      }
+      seasonSelect.value = String(currentYear);
+      seasonSelect.addEventListener("change", loadSeason);
+      $("#openRaceButton").addEventListener("click", () => {
+        const selected = state.sessions.find((session) => String(session.meeting_key) === $("#raceSelect").value);
+        if (selected) openRacePage(selected);
+        else showToast("請先從下拉選單選擇一個分站。");
+      });
+      $("#detailSessionSelect").addEventListener("change", loadSelectedSession);
+      $("#detailDriverSelect").addEventListener("change", () => {
+        const session = state.selectedSessions.find((item) => String(item.session_key) === $("#detailSessionSelect").value);
+        const driver = state.drivers.find((item) => String(item.driver_number) === $("#detailDriverSelect").value);
+        if (driverDataController) driverDataController.abort();
+        driverDataController = new AbortController();
+        if (session) loadDriverDetailData(session, driver || null, driverDataController.signal).catch((error) => {
+          if (error.name !== "AbortError") {
+            $("#detailStatus").textContent = `車手資料載入失敗：${error.message}`;
+            $("#detailStatus").classList.add("error");
+          }
+        });
+      });
+      $("#backToCalendar").addEventListener("click", () => {
+        location.hash = "overview";
+        showCalendar();
+      });
+      window.addEventListener("hashchange", handleRoute);
+      $("#refreshButton").addEventListener("click", () => {
+        responseCache.clear();
+        loadSeason();
+        showToast("正在更新賽事資料…");
+      });
+      $$(".filter-button").forEach((button) =>
+        button.addEventListener("click", () => setFilter(button.dataset.filter, button))
+      );
+      $("#menuButton").addEventListener("click", () => {
+        const expanded = $("#sidebar").classList.toggle("open");
+        $("#menuButton").setAttribute("aria-expanded", String(expanded));
+      });
+      $(".nav").addEventListener("click", (event) => {
+        const link = event.target.closest("a");
+        if (!link) return;
+        $$(".nav a").forEach((item) => item.classList.toggle("active", item === link));
+        if (window.innerWidth <= 850) {
+          $("#sidebar").classList.remove("open");
+          $("#menuButton").setAttribute("aria-expanded", "false");
+        }
+      });
+      loadSeason();
+      refreshTimer = setInterval(() => {
+        if (!$("#overview").classList.contains("detail-mode")) loadSeason();
+      }, 60000);
+      window.addEventListener("beforeunload", () => {
+        clearInterval(refreshTimer);
+        if (requestController) requestController.abort();
+        if (detailController) detailController.abort();
+        if (driverDataController) driverDataController.abort();
+      }, { once: true });
+    }
+
+    init();
+  </script>
+</body>
+</html>
