@@ -19,7 +19,7 @@
       --orange: #ff8a42;
       --green: #79d9ac;
       --mono: "DM Mono", Consolas, monospace;
-      --display: "Arial Narrow", "Segoe UI", sans-serif;
+      --display: Impact, "Arial Narrow", "Microsoft JhengHei", sans-serif;
       --sans: "Segoe UI", "Microsoft JhengHei", sans-serif;
     }
     * { box-sizing: border-box; }
@@ -29,6 +29,7 @@
       font-family: var(--sans); -webkit-font-smoothing: antialiased;
       background-image: radial-gradient(ellipse at 78% -15%, #6d251a26, transparent 42%);
     }
+    ::selection { color: #fff; background: #d93628; }
     button, input, select { font: inherit; }
     button { color: inherit; }
     .app { min-height: 100vh; display: grid; grid-template-columns: 226px minmax(0, 1fr); }
@@ -80,19 +81,30 @@
     .season-pill { flex: 0 0 auto; padding: 8px 11px; border: 1px solid #ff714533; color: #ff9a6c; font: 9px var(--mono); letter-spacing: .6px; }
     .season-pill b { color: var(--orange); margin-right: 5px; }
     .hero {
-      position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(210px, .85fr) minmax(260px, .9fr);
-      gap: 22px; align-items: center; min-height: 200px; padding: 25px 29px; margin-bottom: 16px;
-      border: 1px solid #ffffff12; background: linear-gradient(107deg, #202326 0%, #1b1e20 54%, #351c19 100%);
+      position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(220px, .85fr) minmax(260px, .9fr);
+      gap: 24px; align-items: center; min-height: 230px; padding: 29px 31px; margin-bottom: 16px;
+      border: 1px solid #ffffff16; background: linear-gradient(107deg, #202326 0%, #1b1e20 48%, #351c19 100%);
+      animation: hero-arrive .7s both;
     }
-    .hero::after { content: "APEX"; position: absolute; right: -3px; bottom: -38px; color: #ffffff05; font: 900 150px/.9 var(--display); pointer-events: none; }
+    .hero::before {
+      content: ""; position: absolute; top: 0; left: -50%; width: 36%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--orange), transparent);
+      animation: racing-stripe 5s ease-in-out infinite;
+    }
+    .hero::after { content: "F1"; position: absolute; right: 4%; bottom: -75px; color: #ffffff06; font: 900 230px/.9 var(--display); pointer-events: none; transform: skew(-8deg); }
     .hero-main, .hero-stats, .search-panel { position: relative; z-index: 1; }
     .hero-overline { color: #8b9295; font: 9px var(--mono); letter-spacing: 1.3px; }
-    .hero-title { margin: 10px 0 7px; font: 800 clamp(25px, 3vw, 36px)/1.05 var(--display); }
+    .hero-title { margin: 12px 0 9px; font: 900 clamp(30px, 3.5vw, 48px)/1.05 var(--display); letter-spacing: .4px; }
     .hero-subtitle { color: #a7adaf; font-size: 11px; line-height: 1.7; }
-    .hero-stats { min-height: 126px; display: flex; flex-direction: column; justify-content: center; padding: 12px 0 12px 22px; border-left: 1px solid #ffffff18; }
+    .hero-stats { min-height: 146px; display: flex; flex-direction: column; justify-content: center; padding: 12px 0 12px 22px; border-left: 1px solid #ffffff18; }
     .hero-stat-label { color: #949a9d; font: 9px var(--mono); letter-spacing: 1px; }
     .hero-stat-value { margin-top: 6px; color: #ffd0b0; font: 800 31px/.95 var(--display); }
     .hero-stat-foot { margin-top: 8px; color: #a7adaf; font-size: 10px; }
+    .hero-countdown { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 11px; }
+    .countdown-unit { min-width: 0; padding: 9px 6px 7px; border: 1px solid #ffffff16; background: #08090a50; text-align: center; }
+    .countdown-unit b { display: block; color: #fff1e8; font: 900 clamp(23px, 2.5vw, 34px)/.95 var(--display); font-variant-numeric: tabular-nums; }
+    .countdown-unit span { display: block; margin-top: 6px; color: #a7adaf; font: 8px var(--mono); letter-spacing: .5px; }
+    .countdown-live { color: var(--green) !important; }
     .search-panel label { display: block; color: #c4c8c7; font-size: 10px; margin-bottom: 8px; }
     .search-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
     .search-input, .select-input {
@@ -114,6 +126,8 @@
     .status.warning { color: #ffbd93; }
     .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0 0 16px; }
     .stat-card { position: relative; overflow: hidden; min-height: 105px; padding: 15px 17px; border: 1px solid #ffffff10; background: var(--surface); }
+    .stat-card::after { position: absolute; content: ""; left: 0; bottom: 0; width: 28px; height: 2px; background: var(--red); transition: width .25s; }
+    .stat-card:hover::after { width: 100%; }
     .stat-top { display: flex; align-items: center; justify-content: space-between; }
     .stat-label { color: #91989b; font-size: 10px; }
     .stat-glyph { color: #6d7478; font-size: 14px; }
@@ -135,14 +149,14 @@
     .race-row {
       position: relative; display: grid; grid-template-columns: 4px minmax(0, 1fr) auto auto; align-items: center;
       gap: 12px; min-height: 61px; padding: 8px 11px 8px 0; border: 1px solid #ffffff0a; background: #ffffff03;
-      transition: background .18s;
+      transition: background .18s, transform .18s, border-color .18s;
     }
-    .race-row:hover { background: #ffffff08; }
+    .race-row:hover { background: #ffffff08; transform: translateX(3px); }
     .race-row.selected { border-color: #ff714544; background: #ff714408; }
     .race-bar { align-self: stretch; background: var(--red); }
     .race-row.completed .race-bar { background: var(--green); }
-    .race-name { font-size: 11px; font-weight: 700; }
-    .race-meta { margin-top: 4px; color: #848c90; font-size: 9px; }
+    .race-name { display: block; font-size: 11px; font-weight: 700; }
+    .race-meta { display: block; margin-top: 4px; color: #848c90; font-size: 9px; }
     .race-date { color: #c5c8c6; font: 9px var(--mono); white-space: nowrap; }
     .race-state { min-width: 58px; text-align: right; color: #ff9a6c; font: 9px var(--mono); }
     .race-row.completed .race-state { color: var(--green); }
@@ -206,10 +220,14 @@
       opacity: 0; transform: translateY(8px); pointer-events: none; transition: .22s;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
+    @keyframes hero-arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes racing-stripe { 0%, 15% { left: -45%; } 70%, 100% { left: 110%; } }
+    @keyframes dot-pulse { 50% { box-shadow: 0 0 0 6px #79d9ac18, 0 0 13px #79d9acaa; } }
+    .live-dot { animation: dot-pulse 2s ease-out infinite; }
     @media (max-width: 1120px) {
       .app { grid-template-columns: 200px minmax(0, 1fr); }
       main { padding: 24px 25px 38px; }
-      .hero { grid-template-columns: minmax(200px, 1fr) minmax(175px, .8fr); gap: 15px; }
+      .hero { grid-template-columns: minmax(200px, 1fr) minmax(220px, .9fr); gap: 17px; }
       .search-panel { grid-column: 1 / -1; }
       .search-row { max-width: 460px; }
     }
@@ -232,8 +250,11 @@
       .page-heading { align-items: start; flex-direction: column; gap: 12px; margin-bottom: 15px; }
       .page-heading p { max-width: 300px; line-height: 1.7; }
       h1 { font-size: 37px; }
-      .hero { grid-template-columns: 1fr; gap: 14px; padding: 19px; }
+      .hero { grid-template-columns: 1fr; gap: 14px; min-height: 0; padding: 21px 18px; }
+      .hero-title { font-size: clamp(31px, 9vw, 42px); }
       .hero-stats { min-height: auto; padding: 13px 0 0; border-top: 1px solid #ffffff18; border-left: 0; }
+      .countdown-unit { padding: 10px 4px 8px; }
+      .countdown-unit b { font-size: clamp(25px, 8vw, 34px); }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
       .stat-card { min-height: 95px; padding: 12px; }
       .stat-value { font-size: 27px; }
@@ -241,8 +262,10 @@
       .right-column { grid-template-columns: 1fr; gap: 11px; }
       .panel { padding: 15px 13px; }
       .right-column .panel + .panel { margin-top: 0; }
-      .race-row { gap: 8px; }
-      .race-date { font-size: 8px; }
+      .race-row { grid-template-columns: 3px minmax(0, 1fr) auto; gap: 8px; padding-right: 8px; }
+      .race-date { grid-column: 2; grid-row: 2; margin-top: 4px; font-size: 9px; }
+      .race-state { grid-column: 3; grid-row: 1 / span 2; align-self: center; min-width: 48px; }
+      .race-meta { line-height: 1.5; }
       .panel-code { font-size: 8px; }
       .detail-hero { grid-template-columns: 1fr; padding: 17px; }
       .detail-controls { display: grid; grid-template-columns: 1fr; }
@@ -251,7 +274,7 @@
       .data-table th, .data-table td { padding: 7px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
     }
   </style>
 </head>
@@ -302,15 +325,21 @@
         </label>
       </section>
 
-      <section class="hero" aria-label="最新賽事資訊">
+      <section class="hero" aria-label="下一場正賽與倒數">
         <div class="hero-main">
-          <div class="hero-overline" id="heroOverline">LATEST AVAILABLE GRAND PRIX</div>
+          <div class="hero-overline" id="heroOverline">NEXT GRAND PRIX / 下一場正賽</div>
           <h2 class="hero-title" id="heroTitle">正在載入賽事資料…</h2>
           <div class="hero-subtitle" id="heroSubtitle">連線至 OpenF1 公開賽事資料</div>
         </div>
         <div class="hero-stats">
-          <div class="hero-stat-label" id="heroStatLabel">最近已完成分站</div>
-          <div class="hero-stat-value" id="heroStatValue">—</div>
+          <div class="hero-stat-label" id="heroStatLabel">距離下一場正賽</div>
+          <div class="hero-countdown" id="heroCountdown" aria-label="距離下一場正賽的倒數時間">
+            <div class="countdown-unit"><b id="countdownDays">--</b><span>天 DAYS</span></div>
+            <div class="countdown-unit"><b id="countdownHours">--</b><span>時 HRS</span></div>
+            <div class="countdown-unit"><b id="countdownMinutes">--</b><span>分 MIN</span></div>
+            <div class="countdown-unit"><b id="countdownSeconds">--</b><span>秒 SEC</span></div>
+          </div>
+          <div class="hero-stat-value" id="heroStatValue" hidden>—</div>
           <div class="hero-stat-foot" id="heroStatFoot">等待賽程資料</div>
         </div>
         <div class="search-panel">
@@ -487,6 +516,7 @@
     };
     let toastTimer;
     let refreshTimer;
+    let countdownTimer;
     let requestController;
     let lastRequestAt = 0;
     let requestQueue = Promise.resolve();
@@ -557,11 +587,73 @@
       return Number($("#seasonSelect").value);
     }
 
+    const raceNameTranslations = {
+      "abu dhabi": "阿布達比", "australian": "澳洲", "azerbaijan": "亞塞拜然",
+      "bahrain": "巴林", "belgian": "比利時", "brazilian": "巴西",
+      "british": "英國", "canadian": "加拿大", "chinese": "中國",
+      "dutch": "荷蘭", "emilia romagna": "艾米利亞-羅馬涅", "hungarian": "匈牙利",
+      "imola": "艾米利亞-羅馬涅", "italian": "義大利", "japanese": "日本",
+      "las vegas": "拉斯維加斯", "mexico city": "墨西哥城", "miami": "邁阿密",
+      "monaco": "摩納哥", "qatar": "卡達", "saudi arabian": "沙烏地阿拉伯",
+      "singapore": "新加坡", "spanish": "西班牙", "são paulo": "聖保羅",
+      "sao paulo": "聖保羅", "united states": "美國"
+    };
+    const countryTranslations = {
+      "abu dhabi": "阿布達比", "australia": "澳洲", "austria": "奧地利",
+      "azerbaijan": "亞塞拜然", "bahrain": "巴林", "belgium": "比利時",
+      "brazil": "巴西", "canada": "加拿大", "china": "中國", "hungary": "匈牙利",
+      "italy": "義大利", "japan": "日本", "mexico": "墨西哥", "monaco": "摩納哥",
+      "netherlands": "荷蘭", "qatar": "卡達", "saudi arabia": "沙烏地阿拉伯",
+      "singapore": "新加坡", "spain": "西班牙", "united arab emirates": "阿聯酋",
+      "united kingdom": "英國", "united states": "美國"
+    };
+    const sessionNameTranslations = {
+      "race": "正賽", "practice 1": "第一節自由練習", "practice 2": "第二節自由練習",
+      "practice 3": "第三節自由練習", "qualifying": "排位賽", "sprint": "衝刺賽",
+      "sprint qualifying": "衝刺排位賽", "sprint shootout": "衝刺排位賽"
+    };
+    const circuitTranslations = {
+      "austin": "奧斯汀", "baku": "巴庫", "catalunya": "加泰隆尼亞",
+      "hungaroring": "亨格羅林", "interlagos": "英特拉格斯", "kuala lumpur": "吉隆坡",
+      "las vegas": "拉斯維加斯", "lusail": "盧賽爾", "madring": "馬德里賽道",
+      "melbourne": "墨爾本", "mexico city": "墨西哥城", "miami": "邁阿密",
+      "monaco": "摩納哥", "monte carlo": "蒙地卡羅", "montreal": "蒙特婁",
+      "monza": "蒙札", "são paulo": "聖保羅", "sao paulo": "聖保羅",
+      "shanghai": "上海", "silverstone": "銀石", "singapore": "新加坡",
+      "spa-francorchamps": "斯帕-弗朗科爾尚", "spielberg": "斯皮爾堡",
+      "suzuka": "鈴鹿", "yas marina circuit": "亞斯碼頭", "zandvoort": "贊德沃特"
+    };
+
+    function translateRaceName(name, country = "") {
+      const normalized = String(name || "").replace(/\s+Grand Prix$/i, "").trim().toLowerCase();
+      const translation = raceNameTranslations[normalized] ||
+        Object.entries(raceNameTranslations).find(([key]) => normalized.includes(key))?.[1];
+      if (translation) return `${translation}大獎賽`;
+      const translatedCountry = countryTranslations[String(country || "").toLowerCase()];
+      if (translatedCountry && /grand prix/i.test(name || "")) return `${translatedCountry}大獎賽`;
+      return name || `${translatedCountry || country || "F1"}大獎賽`;
+    }
+
+    function translateSessionName(name) {
+      return sessionNameTranslations[String(name || "").toLowerCase()] || name || "賽事";
+    }
+
+    function translateCountryName(country) {
+      const name = String(country || "");
+      return countryTranslations[name.toLowerCase()] || name || "國家待定";
+    }
+
+    function translateCircuitName(circuit) {
+      const name = String(circuit || "");
+      return circuitTranslations[name.toLowerCase()] || name || "賽道待定";
+    }
+
     function createRaceName(session) {
       const meeting = state.meetings.find((item) => item.meeting_key === session.meeting_key);
-      if (meeting?.meeting_name && meeting.meeting_name !== "Pre-Season Testing") return meeting.meeting_name;
-      if (session.meeting_name) return session.meeting_name;
-      return `${session.country_name || session.location || "F1"} Grand Prix`;
+      const name = meeting?.meeting_name && meeting.meeting_name !== "Pre-Season Testing"
+        ? meeting.meeting_name
+        : session.meeting_name || `${session.country_name || session.location || "F1"} Grand Prix`;
+      return translateRaceName(name, meeting?.country_name || session.country_name);
     }
 
     function renderStats() {
@@ -571,26 +663,50 @@
       const inProgress = state.sessions.find((session) =>
         new Date(session.date_start).getTime() <= now && new Date(session.date_end).getTime() >= now
       );
+      const featured = next || inProgress;
       $("#raceCount").textContent = String(state.sessions.length);
       $("#raceCountFoot").textContent = `${getYear()} 賽季正賽分站`;
       $("#completedCount").textContent = String(completed.length);
-      $("#nextRaceValue").textContent = inProgress
-        ? "進行中"
-        : next ? (next.country_name || next.circuit_short_name || "待定") : "賽季結束";
-      $("#nextRaceFoot").textContent = inProgress
-        ? `${inProgress.country_name || inProgress.circuit_short_name} ・ 即時遙測需付費資料源`
-        : next ? formatDate(next.date_start, { hour: undefined, minute: undefined }) : "目前沒有後續分站資料";
+      $("#nextRaceValue").textContent = featured ? createRaceName(featured) : "賽季結束";
+      $("#nextRaceFoot").textContent = featured
+        ? `${inProgress === featured ? "正在進行" : "正賽"} ・ ${formatDate(featured.date_start, { hour: undefined, minute: undefined })}`
+        : "目前沒有後續分站資料";
       $("#updatedValue").textContent = new Intl.DateTimeFormat("zh-Hant", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date());
       $("#sidebarYear").textContent = `${getYear()} 賽季`;
-      const latest = completed[completed.length - 1];
-      $("#heroTitle").textContent = latest ? createRaceName(latest) : (next ? createRaceName(next) : `${getYear()} 賽季`);
-      $("#heroSubtitle").textContent = latest
-        ? `${latest.circuit_short_name || latest.location || "賽道"} ・ ${latest.country_name || ""} ・ 正賽 ${formatDate(latest.date_start)}`
-        : next ? `下一分站：${next.country_name || ""} ・ ${formatDate(next.date_start)}` : "目前沒有已完成的正賽資料";
-      $("#heroOverline").textContent = latest ? "LATEST COMPLETED GRAND PRIX" : "NEXT GRAND PRIX";
-      $("#heroStatLabel").textContent = latest ? "最近正賽場次" : "本季賽事場次";
-      $("#heroStatValue").textContent = latest ? String(latest.session_key) : "—";
-      $("#heroStatFoot").textContent = latest ? `資料日期 ${formatDate(latest.date_end)}` : "正賽資料尚未提供";
+      $("#heroTitle").textContent = featured ? createRaceName(featured) : `${getYear()} 賽季賽事已結束`;
+      $("#heroSubtitle").textContent = featured
+        ? `${translateCircuitName(featured.circuit_short_name || featured.location)} ・ ${translateCountryName(featured.country_name)} ・ 正賽時間 ${formatDate(featured.date_start)}`
+        : "目前沒有可用的後續正賽賽程資料。";
+      $("#heroOverline").textContent = inProgress && !next ? "RACE IN PROGRESS / 正賽進行中" : "NEXT GRAND PRIX / 下一場正賽";
+      $("#heroStatLabel").textContent = inProgress && !next ? "本站結束倒數" : "距離下一場正賽";
+      $("#heroStatValue").textContent = featured ? String(featured.session_key) : "—";
+      $("#heroStatFoot").textContent = featured
+        ? `${inProgress && !next ? "預計結束" : "開賽時間"} ・ ${formatDate(inProgress && !next ? featured.date_end : featured.date_start)}`
+        : "賽程公布後會在此顯示倒數";
+      updateCountdown();
+    }
+
+    function updateCountdown() {
+      const now = Date.now();
+      const next = state.sessions.find((session) => new Date(session.date_start).getTime() > now);
+      const inProgress = state.sessions.find((session) =>
+        new Date(session.date_start).getTime() <= now && new Date(session.date_end).getTime() >= now
+      );
+      const target = next ? new Date(next.date_start).getTime()
+        : inProgress ? new Date(inProgress.date_end).getTime() : null;
+      const values = ["countdownDays", "countdownHours", "countdownMinutes", "countdownSeconds"];
+      if (!Number.isFinite(target)) {
+        values.forEach((id) => { $(`#${id}`).textContent = "—"; });
+        return;
+      }
+      const remaining = Math.max(0, Math.floor((target - now) / 1000));
+      const units = [
+        Math.floor(remaining / 86400),
+        Math.floor((remaining % 86400) / 3600),
+        Math.floor((remaining % 3600) / 60),
+        remaining % 60
+      ];
+      values.forEach((id, index) => { $(`#${id}`).textContent = String(units[index]).padStart(2, "0"); });
     }
 
     function renderRaces() {
@@ -641,7 +757,7 @@
         name.textContent = `${String(round).padStart(2, "0")}　${createRaceName(session)}`;
         const meta = document.createElement("span");
         meta.className = "race-meta";
-        meta.textContent = `${session.circuit_short_name || session.location || "賽道待定"} ・ ${session.country_name || "國家待定"} ・ ${session.session_name || "Race"}`;
+        meta.textContent = `${translateCircuitName(session.circuit_short_name || session.location)} ・ ${translateCountryName(session.country_name)} ・ ${translateSessionName(session.session_name)}`;
         details.append(name, meta);
         const date = document.createElement("span");
         date.className = "race-date";
@@ -971,9 +1087,9 @@
       const meeting = state.selectedMeeting;
       const sessionSelect = $("#detailSessionSelect");
       const option = sessionSelect.options[sessionSelect.selectedIndex];
-      $("#detailSessionType").textContent = session.session_name || session.session_type;
+      $("#detailSessionType").textContent = translateSessionName(session.session_name || session.session_type);
       $("#detailSessionDate").textContent = formatDate(session.date_start);
-      $("#detailRaceMeta").textContent = `${meeting.circuit_short_name || meeting.location || "賽道"} ・ ${meeting.country_name || ""} ・ ${formatDate(session.date_start)}　至　${formatDate(session.date_end)}`;
+      $("#detailRaceMeta").textContent = `${translateCircuitName(meeting.circuit_short_name || meeting.location)} ・ ${translateCountryName(meeting.country_name)} ・ ${formatDate(session.date_start)}　至　${formatDate(session.date_end)}`;
       $("#detailStatus").textContent = `正在載入 ${option?.textContent || session.session_name} 的歷史資料…`;
       $("#detailStatus").classList.remove("error");
       history.replaceState(null, "", `#race/${getYear()}/${meeting.meeting_key}/${session.session_key}`);
@@ -1074,7 +1190,7 @@
         state.selectedSessions.forEach((item) => {
           const option = document.createElement("option");
           option.value = String(item.session_key);
-          option.textContent = `${item.session_name || item.session_type}　・　${formatDate(item.date_start, { year: undefined })}`;
+          option.textContent = `${translateSessionName(item.session_name || item.session_type)}　・　${formatDate(item.date_start, { year: undefined })}`;
           select.append(option);
         });
         const initial = state.selectedSessions.find((item) => String(item.session_key) === String(routeSessionKey)) ||
@@ -1186,11 +1302,13 @@
         }
       });
       loadSeason();
+      countdownTimer = setInterval(updateCountdown, 1000);
       refreshTimer = setInterval(() => {
         if (!$("#overview").classList.contains("detail-mode")) loadSeason();
       }, 60000);
       window.addEventListener("beforeunload", () => {
         clearInterval(refreshTimer);
+        clearInterval(countdownTimer);
         if (requestController) requestController.abort();
         if (detailController) detailController.abort();
         if (driverDataController) driverDataController.abort();
