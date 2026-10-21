@@ -712,6 +712,65 @@
       .track-car::before { animation: none; }
       .track-car svg circle { animation: none !important; }
     }
+    .replay-panel { overflow: hidden; }
+    .replay-panel .panel-header { align-items: center; }
+    .replay-label {
+      display: inline-flex; align-items: center; gap: 6px; color: var(--red);
+      font: 8px var(--mono); letter-spacing: 1px;
+    }
+    .replay-label::before {
+      width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+      box-shadow: 0 0 8px currentColor; content: "";
+    }
+    .replay-stage {
+      position: relative; overflow: hidden; min-height: 220px; margin-top: 13px;
+      border: 1px solid #d8d0c4; background-color: #e9e5da;
+      background-image: linear-gradient(#55513a0b 1px, transparent 1px), linear-gradient(90deg, #55513a0b 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .replay-stage svg { display: block; width: 100%; height: clamp(220px, 36vw, 380px); }
+    .replay-track-base { fill: none; stroke: #888277; stroke-width: 34; stroke-linecap: round; stroke-linejoin: round; }
+    .replay-track-line { fill: none; stroke: #f7f4ed; stroke-width: 25; stroke-linecap: round; stroke-linejoin: round; }
+    .replay-track-center { fill: none; stroke: #b9b1a3; stroke-width: 1; stroke-dasharray: 5 9; }
+    .replay-marker { filter: drop-shadow(0 3px 3px #17181788); }
+    .replay-marker circle { fill: var(--red); stroke: #fff8ed; stroke-width: 3; }
+    .replay-marker path { fill: #fff8ed; }
+    .replay-marker text { fill: #fff8ed; font: 800 13px var(--mono); text-anchor: middle; dominant-baseline: central; }
+    .replay-corner { fill: #777268; font: 700 13px var(--mono); }
+    .replay-empty {
+      position: absolute; inset: 0; display: grid; place-items: center; padding: 22px;
+      color: #6d6a61; text-align: center; font-size: 11px; line-height: 1.7;
+    }
+    .replay-empty[hidden] { display: none; }
+    .replay-controls { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 9px; margin-top: 11px; }
+    .replay-button {
+      min-width: 67px; height: 34px; padding: 0 11px; border: 1px solid #d8d0c4;
+      background: #f6f3ec; color: #262420; font-size: 10px; font-weight: 700; cursor: pointer;
+    }
+    .replay-button:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
+    .replay-button:disabled { opacity: .45; cursor: not-allowed; }
+    .replay-speed { width: 76px; height: 34px; font-size: 10px; }
+    .replay-range { width: 100%; accent-color: var(--red); cursor: pointer; }
+    .replay-time { min-width: 68px; color: #625c52; font: 9px var(--mono); text-align: right; }
+    body[data-theme="dark"] .replay-stage {
+      border-color: #3a3d3c; background-color: #222524;
+      background-image: linear-gradient(#ffffff0a 1px, transparent 1px), linear-gradient(90deg, #ffffff0a 1px, transparent 1px);
+    }
+    body[data-theme="dark"] .replay-track-base { stroke: #626766; }
+    body[data-theme="dark"] .replay-track-line { stroke: #d9d8cf; }
+    body[data-theme="dark"] .replay-track-center { stroke: #92938b; }
+    body[data-theme="dark"] .replay-corner { fill: #b7b8af; }
+    body[data-theme="dark"] .replay-empty { color: #b4b5ad; }
+    body[data-theme="dark"] .replay-button { border-color: #434746; background: #222524; color: #f3f1ed; }
+    body[data-theme="dark"] .replay-time { color: #b4b5ad; }
+    @media (max-width: 570px) {
+      .replay-stage { min-height: 190px; }
+      .replay-stage svg { height: 230px; }
+      .replay-controls { grid-template-columns: auto auto minmax(0, 1fr); gap: 6px; }
+      .replay-time { grid-column: 1 / -1; text-align: left; }
+      .replay-button { min-width: 60px; padding: 0 8px; }
+      .replay-speed { width: 68px; }
+    }
   </style>
 </head>
 <body>
@@ -919,6 +978,37 @@
         </div>
         <div class="status" id="detailStatus" role="status" aria-live="polite">等待選取賽事。</div>
         <div class="detail-grid">
+          <article class="panel wide replay-panel">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">賽道歷史回放</h3>
+                <p class="panel-subtitle">依 OpenF1 車手 GPS 軌跡重播；切換車手即可查看不同賽車。</p>
+              </div>
+              <span class="replay-label" id="replayStatus">等待 GPS 資料</span>
+            </div>
+            <div class="replay-stage">
+              <svg id="replayTrack" viewBox="0 0 1000 560" role="img" aria-label="車手歷史賽道位置回放">
+                <polyline class="replay-track-base" id="replayTrackBase"></polyline>
+                <polyline class="replay-track-line" id="replayTrackLine"></polyline>
+                <polyline class="replay-track-center" id="replayTrackCenter"></polyline>
+                <text class="replay-corner" id="replayStartLabel" x="24" y="34">START</text>
+                <g class="replay-marker" id="replayMarker" transform="translate(0 0)" hidden>
+                  <circle r="18"></circle>
+                  <path d="M-8 5V-5l8-6 8 6V5L0 10z"></path>
+                  <text id="replayDriverNumber" y="34"></text>
+                </g>
+              </svg>
+              <div class="replay-empty" id="replayEmpty" role="status">選取分站與車手後，載入可用的歷史 GPS 軌跡。</div>
+            </div>
+            <div class="replay-controls">
+              <button class="replay-button" id="replayPlay" type="button" disabled>▶ 播放</button>
+              <select class="select-input replay-speed" id="replaySpeed" aria-label="回放速度">
+                <option value="30">30×</option><option value="60" selected>60×</option><option value="120">120×</option>
+              </select>
+              <input class="replay-range" id="replayProgress" type="range" min="0" max="1000" value="0" aria-label="回放進度" disabled>
+              <span class="replay-time" id="replayTime">—</span>
+            </div>
+          </article>
           <article class="panel wide">
             <div class="panel-header"><div><h3 class="panel-title">賽事名次</h3><p class="panel-subtitle">各車手在所選賽段的最新位置。</p></div><span class="panel-code">CLASSIFICATION</span></div>
             <div class="data-table-wrap" id="resultsTable"></div>
@@ -978,6 +1068,17 @@
     let requestQueue = Promise.resolve();
     let detailController;
     let driverDataController;
+    let replayController;
+    let replayFrame = 0;
+    let replayLastFrame = 0;
+    let replayRecords = [];
+    let replayTimes = [];
+    let replayStartTime = 0;
+    let replayEndTime = 0;
+    let replayCurrentTime = 0;
+    let replayLastDisplayedSecond = -1;
+    let replayPlaying = false;
+    let replayGeometry = null;
     const responseCache = new Map();
     const CACHE_TTL = 5 * 60 * 1000;
     let requestBlockedUntil = 0;
@@ -1416,6 +1517,161 @@
       renderDataTable("resultsTable", ["名次", "車手", "車隊", "最後更新", "狀態"], rows, "本賽段尚未有位置資料。未舉行或資料尚未公開的賽事會顯示空白。");
     }
 
+    function resetRaceReplay(message) {
+      if (replayController) replayController.abort();
+      if (replayFrame) cancelAnimationFrame(replayFrame);
+      replayFrame = 0;
+      replayPlaying = false;
+      replayRecords = [];
+      replayTimes = [];
+      replayGeometry = null;
+      replayLastDisplayedSecond = -1;
+      replayCurrentTime = 0;
+      $("#replayTrackBase").setAttribute("points", "");
+      $("#replayTrackLine").setAttribute("points", "");
+      $("#replayTrackCenter").setAttribute("points", "");
+      $("#replayMarker").setAttribute("hidden", "");
+      $("#replayEmpty").hidden = false;
+      $("#replayEmpty").textContent = message;
+      $("#replayStatus").textContent = "等待 GPS 資料";
+      $("#replayPlay").disabled = true;
+      $("#replayPlay").textContent = "▶ 播放";
+      $("#replayProgress").disabled = true;
+      $("#replayProgress").value = "0";
+      $("#replayTime").textContent = "—";
+    }
+
+    function renderRaceReplay(data, driver) {
+      const valid = data
+        .filter((item) => item.x !== null && item.x !== undefined && item.y !== null && item.y !== undefined && item.date &&
+          Number.isFinite(Number(item.x)) && Number.isFinite(Number(item.y)) && Number.isFinite(new Date(item.date).getTime()))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      if (valid.length < 2) {
+        resetRaceReplay("此賽段沒有足夠的 GPS 軌跡可供回放。可選擇已完成的正賽或其他車手。");
+        $("#replayStatus").textContent = "沒有 GPS 軌跡";
+        return;
+      }
+      const maxSamples = 2400;
+      const stride = Math.max(1, Math.ceil(valid.length / maxSamples));
+      replayRecords = valid.filter((item, index) => index % stride === 0 || index === valid.length - 1);
+      const xs = replayRecords.map((item) => Number(item.x));
+      const ys = replayRecords.map((item) => Number(item.y));
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const rangeX = maxX - minX;
+      const rangeY = maxY - minY;
+      if (!rangeX || !rangeY) {
+        resetRaceReplay("GPS 軌跡座標不完整，無法繪製賽道回放。");
+        $("#replayStatus").textContent = "GPS 座標不完整";
+        return;
+      }
+      const padding = 88;
+      const scale = Math.min((1000 - padding * 2) / rangeX, (560 - padding * 2) / rangeY);
+      const offsetX = (1000 - rangeX * scale) / 2;
+      const offsetY = (560 - rangeY * scale) / 2;
+      replayGeometry = { minX, minY, scale, offsetX, offsetY };
+      const points = replayRecords.map((item) => {
+        const x = offsetX + (Number(item.x) - minX) * scale;
+        const y = 560 - offsetY - (Number(item.y) - minY) * scale;
+        return [x, y];
+      });
+      const pointString = points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+      ["replayTrackBase", "replayTrackLine", "replayTrackCenter"].forEach((id) => {
+        $(`#${id}`).setAttribute("points", pointString);
+      });
+      $("#replayStartLabel").setAttribute("x", String(Math.max(16, points[0][0] - 36)));
+      $("#replayStartLabel").setAttribute("y", String(Math.max(25, points[0][1] - 32)));
+      $("#replayMarker").removeAttribute("hidden");
+      $("#replayDriverNumber").textContent = String(driver.driver_number);
+      replayStartTime = new Date(replayRecords[0].date).getTime();
+      replayEndTime = new Date(replayRecords[replayRecords.length - 1].date).getTime();
+      replayTimes = replayRecords.map((item) => new Date(item.date).getTime());
+      replayCurrentTime = replayStartTime;
+      $("#replayProgress").disabled = false;
+      $("#replayProgress").value = "0";
+      $("#replayPlay").disabled = false;
+      $("#replayEmpty").hidden = true;
+      $("#replayStatus").textContent = `GPS 軌跡 · ${driver.name_acronym || `#${driver.driver_number}`}`;
+      updateRaceReplay(replayStartTime);
+    }
+
+    function updateRaceReplay(timestamp) {
+      if (!replayRecords.length) return;
+      const duration = replayEndTime - replayStartTime;
+      const progress = duration > 0 ? Math.max(0, Math.min(1, (timestamp - replayStartTime) / duration)) : 0;
+      const targetTime = replayStartTime + duration * progress;
+      replayCurrentTime = targetTime;
+      let low = 0;
+      let high = replayRecords.length - 1;
+      while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+        if (replayTimes[middle] < targetTime) low = middle + 1;
+        else high = middle;
+      }
+      const current = replayRecords[low];
+      const previous = replayRecords[Math.max(0, low - 1)];
+      const previousTime = replayTimes[Math.max(0, low - 1)];
+      const currentTime = replayTimes[low];
+      const ratio = currentTime > previousTime ? (targetTime - previousTime) / (currentTime - previousTime) : 0;
+      const x = Number(previous.x) + (Number(current.x) - Number(previous.x)) * ratio;
+      const y = Number(previous.y) + (Number(current.y) - Number(previous.y)) * ratio;
+      const { minX, minY, scale, offsetX, offsetY } = replayGeometry;
+      const markerX = offsetX + (x - minX) * scale;
+      const markerY = 560 - offsetY - (y - minY) * scale;
+      $("#replayMarker").setAttribute("transform", `translate(${markerX.toFixed(1)} ${markerY.toFixed(1)})`);
+      $("#replayProgress").value = String(Math.round(progress * 1000));
+      const displayedSecond = Math.floor(targetTime / 1000);
+      if (displayedSecond !== replayLastDisplayedSecond) {
+        $("#replayTime").textContent = formatDate(new Date(targetTime).toISOString(), { year: undefined });
+        replayLastDisplayedSecond = displayedSecond;
+      }
+    }
+
+    function stopRaceReplay() {
+      replayPlaying = false;
+      if (replayFrame) cancelAnimationFrame(replayFrame);
+      replayFrame = 0;
+      $("#replayPlay").textContent = "▶ 播放";
+    }
+
+    function animateRaceReplay(now) {
+      if (!replayPlaying) return;
+      if (replayLastFrame) {
+        const speed = Number($("#replaySpeed").value);
+        const nextTime = replayCurrentTime + (now - replayLastFrame) * speed;
+        if (nextTime >= replayEndTime) {
+          updateRaceReplay(replayEndTime);
+          stopRaceReplay();
+          return;
+        }
+        updateRaceReplay(nextTime);
+      }
+      replayLastFrame = now;
+      replayFrame = requestAnimationFrame(animateRaceReplay);
+    }
+
+    async function loadRaceReplay(session, driver) {
+      resetRaceReplay(driver ? "正在載入這位車手的 GPS 軌跡…" : "此賽段沒有可選車手資料。");
+      if (!session || !driver) return;
+      replayController = new AbortController();
+      const { signal } = replayController;
+      $("#replayStatus").textContent = "載入中";
+      try {
+        const data = await fetchJson(
+          `${API_BASE}/location?session_key=${encodeURIComponent(session.session_key)}&driver_number=${encodeURIComponent(driver.driver_number)}`,
+          signal
+        );
+        if (signal.aborted) return;
+        renderRaceReplay(data, driver);
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        resetRaceReplay(`GPS 軌跡載入失敗：${error.message}`);
+        $("#replayStatus").textContent = "載入失敗";
+      }
+    }
+
     function renderLapData(laps, driver) {
       const validLaps = laps.filter((lap) => Number.isFinite(Number(lap.lap_duration)) && !lap.is_pit_out_lap);
       const bestLap = validLaps.length ? Math.min(...validLaps.map((lap) => Number(lap.lap_duration))) : null;
@@ -1579,6 +1835,7 @@
         if (state.drivers.some((driver) => String(driver.driver_number) === previousDriver)) driverSelect.value = previousDriver;
         else if (state.drivers.length) driverSelect.value = String(state.drivers[0].driver_number);
         const selectedDriver = state.drivers.find((driver) => String(driver.driver_number) === driverSelect.value) || null;
+        loadRaceReplay(session, selectedDriver);
         const issues = [];
         try {
           const positions = await fetchJson(`${API_BASE}/position?session_key=${encodeURIComponent(session.session_key)}`, signal);
@@ -1758,6 +2015,7 @@
       $("#detailDriverSelect").addEventListener("change", () => {
         const session = state.selectedSessions.find((item) => String(item.session_key) === $("#detailSessionSelect").value);
         const driver = state.drivers.find((item) => String(item.driver_number) === $("#detailDriverSelect").value);
+        loadRaceReplay(session, driver || null);
         if (driverDataController) driverDataController.abort();
         driverDataController = new AbortController();
         if (session) loadDriverDetailData(session, driver || null, driverDataController.signal).catch((error) => {
@@ -1766,6 +2024,24 @@
             $("#detailStatus").classList.add("error");
           }
         });
+      });
+      $("#replayPlay").addEventListener("click", () => {
+        if (replayPlaying) {
+          stopRaceReplay();
+          return;
+        }
+        if (!replayRecords.length) return;
+        if (Number($("#replayProgress").value) >= 1000) updateRaceReplay(replayStartTime);
+        replayPlaying = true;
+        replayLastFrame = 0;
+        $("#replayPlay").textContent = "Ⅱ 暫停";
+        replayFrame = requestAnimationFrame(animateRaceReplay);
+      });
+      $("#replayProgress").addEventListener("input", () => {
+        stopRaceReplay();
+        if (!replayRecords.length) return;
+        const progress = Number($("#replayProgress").value) / 1000;
+        updateRaceReplay(replayStartTime + (replayEndTime - replayStartTime) * progress);
       });
       $("#backToCalendar").addEventListener("click", () => {
         location.hash = "overview";
@@ -1804,6 +2080,8 @@
         if (requestController) requestController.abort();
         if (detailController) detailController.abort();
         if (driverDataController) driverDataController.abort();
+        if (replayController) replayController.abort();
+        if (replayFrame) cancelAnimationFrame(replayFrame);
       }, { once: true });
     }
 
