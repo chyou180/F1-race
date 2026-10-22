@@ -143,6 +143,9 @@
     .news-item a { color: var(--text); font-size: 10px; font-weight: 700; line-height: 1.55; text-decoration: none; }
     .news-item a:hover { color: var(--orange); text-decoration: underline; text-underline-offset: 3px; }
     .news-item-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 5px; color: var(--muted); font: 8px var(--mono); }
+    .news-original { margin-top: 6px; color: var(--muted); font-size: 8px; line-height: 1.55; }
+    .news-original summary { width: fit-content; color: var(--muted); cursor: pointer; }
+    .news-original p { margin: 5px 0 0; color: var(--muted); }
     .news-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 11px; }
     .news-tools .search-note { margin: 0; }
     .news-language-link { color: var(--orange); font-size: 9px; text-decoration: none; }
@@ -1420,7 +1423,7 @@
           <div class="panel-header">
             <div>
               <h2 class="panel-title">F1 最新新聞</h2>
-              <p class="panel-subtitle">英文標題來自官方與媒體 RSS；點擊前往原文。</p>
+              <p class="panel-subtitle">新聞標題翻譯為繁體中文；點擊可閱讀英文原文。</p>
             </div>
             <button class="icon-button intelligence-refresh" id="newsRefreshButton" type="button" aria-label="重新載入 F1 新聞" title="重新載入新聞">↻</button>
           </div>
@@ -2790,7 +2793,8 @@
           link.href = articleUrl.toString();
           link.target = "_blank";
           link.rel = "noopener noreferrer";
-          link.textContent = String(article.title || "未命名新聞").slice(0, 240);
+          const originalTitle = String(article.title || "未命名新聞").slice(0, 240);
+          link.textContent = String(article.translatedTitle || originalTitle).slice(0, 300);
           const meta = document.createElement("div");
           meta.className = "news-item-meta";
           const source = document.createElement("span");
@@ -2800,13 +2804,28 @@
           date.textContent = article.publishedAt ? formatDate(article.publishedAt) : "發布時間未提供";
           meta.append(source, date);
           item.append(link, meta);
+          if (article.translatedTitle) {
+            const original = document.createElement("details");
+            original.className = "news-original";
+            const summary = document.createElement("summary");
+            summary.textContent = "查看英文原標題";
+            const sourceTitle = document.createElement("p");
+            sourceTitle.textContent = originalTitle;
+            original.append(summary, sourceTitle);
+            item.append(original);
+          }
           list.append(item);
         });
         if (!list.children.length) throw new Error("目前沒有可顯示的新聞標題。");
         const availableSources = Array.isArray(data.sources)
           ? data.sources.filter((source) => source.available).map((source) => source.name)
           : [];
-        $("#newsStatus").textContent = `最近更新 ${formatDate(data.updatedAt)}${availableSources.length ? ` · ${availableSources.join("、")}` : ""} · 約每 10 分鐘更新`;
+        const translationStatus = data.translationAvailable
+          ? "AI 翻譯完成"
+          : data.translationConfigured
+            ? "部分標題暫無翻譯"
+            : "Worker 尚未啟用 Workers AI";
+        $("#newsStatus").textContent = `最近更新 ${formatDate(data.updatedAt)}${availableSources.length ? ` · ${availableSources.join("、")}` : ""} · ${translationStatus} · 約每 10 分鐘更新`;
       } catch (error) {
         if (error.name === "AbortError") return;
         console.error("F1 新聞載入失敗。", error);
