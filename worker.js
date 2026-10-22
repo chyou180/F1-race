@@ -338,7 +338,7 @@ async function handleNews(request, requestUrl, env) {
 }
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === "OPTIONS") return response(null, 204);
     if (request.method !== "GET") return response('{"error":"Method not allowed."}', 405);
