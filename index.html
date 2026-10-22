@@ -2803,15 +2803,6 @@
           date.dateTime = article.publishedAt || "";
           date.textContent = article.publishedAt ? formatDate(article.publishedAt) : "發布時間未提供";
           meta.append(source, date);
-          if (!article.translatedTitle) {
-            const translateLink = document.createElement("a");
-            translateLink.className = "news-language-link";
-            translateLink.href = `https://translate.google.com/?sl=en&tl=zh-TW&text=${encodeURIComponent(originalTitle)}&op=translate`;
-            translateLink.target = "_blank";
-            translateLink.rel = "noopener noreferrer";
-            translateLink.textContent = "用 Google 翻譯標題 ↗";
-            meta.append(translateLink);
-          }
           item.append(link, meta);
           if (article.translatedTitle) {
             const original = document.createElement("details");
