@@ -1653,7 +1653,7 @@
 
   <script>
     const API_BASE = "https://api.openf1.org/v1";
-    const API_PROXY_BASE = "";
+    const API_PROXY_BASE = "https://f1-race.anna1000912.workers.dev";
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
     const state = {
@@ -1722,7 +1722,8 @@
     function getProxiedUrl(url, route) {
       if (!API_PROXY_BASE) return url;
       const source = new URL(url);
-      return `${API_PROXY_BASE.replace(/\/+$/, "")}/${route}${source.search}`;
+      const endpointPath = route === "v1" ? source.pathname.replace(/^\/v1(?=\/|$)/, "") : "";
+      return `${API_PROXY_BASE.replace(/\/+$/, "")}/${route}${endpointPath}${source.search}`;
     }
 
     function readApiCache(url) {
