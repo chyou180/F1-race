@@ -136,6 +136,27 @@
     .weekend-session.active { border-color: rgba(121, 217, 172, .62); background: rgba(121, 217, 172, .1); }
     .weekend-session.active .weekend-session-state { color: var(--green); }
     .weekend-session:hover { border-color: var(--red); }
+    .intelligence-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); gap: 14px; margin: 0 0 16px; }
+    .intelligence-grid .panel { min-width: 0; margin: 0; }
+    .news-list, .prediction-list { display: grid; gap: 7px; margin-top: 12px; }
+    .news-item, .prediction-row { min-width: 0; padding: 10px 11px; border: 1px solid var(--glass-stroke); border-left: 3px solid var(--team-color, var(--red)); border-radius: 11px; background: rgba(255, 255, 255, .035); }
+    .news-item a { color: var(--text); font-size: 10px; font-weight: 700; line-height: 1.55; text-decoration: none; }
+    .news-item a:hover { color: var(--orange); text-decoration: underline; text-underline-offset: 3px; }
+    .news-item-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 5px; color: var(--muted); font: 8px var(--mono); }
+    .news-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 11px; }
+    .news-tools .search-note { margin: 0; }
+    .news-language-link { color: var(--orange); font-size: 9px; text-decoration: none; }
+    .news-language-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .prediction-row { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 9px; }
+    .prediction-position { display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid var(--team-color, var(--red)); border-radius: 50%; color: var(--team-color, var(--red)); font: 800 10px var(--mono); }
+    .prediction-driver { min-width: 0; }
+    .prediction-driver a { color: var(--text); font-size: 10px; font-weight: 800; text-decoration: none; }
+    .prediction-driver a:hover { color: var(--orange); }
+    .prediction-driver small { display: block; overflow: hidden; margin-top: 3px; color: var(--muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .prediction-score { color: var(--team-color, var(--orange)); font: 800 10px var(--mono); white-space: nowrap; }
+    .prediction-note { margin-top: 10px; color: var(--muted); font-size: 8px; line-height: 1.7; }
+    .intelligence-refresh { width: 31px; height: 31px; flex: 0 0 31px; }
+    @media (max-width: 850px) { .intelligence-grid { grid-template-columns: 1fr; } }
     .championship-actions { display: flex; align-items: center; justify-content: flex-end; margin: 8px 0 2px; }
     .favorite-filter, .favorite-button, .profile-favorite {
       border: 1px solid var(--glass-stroke); border-radius: 9px;
@@ -279,6 +300,8 @@
     .detail-page[hidden] { display: none; }
     #overview.detail-mode > .page-heading,
     #overview.detail-mode > .hero,
+    #overview.detail-mode > #weekendTimelineSection,
+    #overview.detail-mode > #race-intelligence,
     #overview.detail-mode > .stats,
     #overview.detail-mode > .championships,
     #overview.detail-mode > .content-grid,
@@ -1287,6 +1310,7 @@
       <div class="nav-caption">RACE CONTROL</div>
       <nav class="nav" aria-label="主要導覽">
         <a class="active" href="#overview"><span class="nav-icon">▦</span>賽季總覽</a>
+        <a href="#race-intelligence"><span class="nav-icon">✦</span>新聞與預測</a>
         <a href="#calendar"><span class="nav-icon">◷</span>賽程與分站</a>
         <a href="#championships"><span class="nav-icon">▤</span>年度積分榜</a>
         <a href="#classification"><span class="nav-icon">⌖</span>最近賽事名次</a>
@@ -1389,6 +1413,36 @@
         <div class="weekend-timeline" id="weekendTimeline" aria-live="polite">
           <div class="empty-state">正在載入賽程…</div>
         </div>
+      </section>
+
+      <section class="intelligence-grid" id="race-intelligence" aria-label="F1 最新新聞與數據預測">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">F1 最新新聞</h2>
+              <p class="panel-subtitle">英文標題來自官方與媒體 RSS；點擊前往原文。</p>
+            </div>
+            <button class="icon-button intelligence-refresh" id="newsRefreshButton" type="button" aria-label="重新載入 F1 新聞" title="重新載入新聞">↻</button>
+          </div>
+          <div class="championship-status" id="newsStatus" role="status" aria-live="polite">正在載入新聞…</div>
+          <div class="news-list" id="newsList"></div>
+          <div class="news-tools">
+            <a class="news-language-link" href="https://news.google.com/search?q=F1+%E5%85%AC%E5%BC%8F%E4%B8%80%E7%B4%9A%E6%96%B9%E7%A8%8B%E5%BC%8F&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant" target="_blank" rel="noopener noreferrer">繁體中文新聞 ↗</a>
+            <span class="search-note">開啟 Google 新聞的繁中 F1 搜尋結果</span>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">下一場數據預測</h2>
+              <p class="panel-subtitle" id="predictionSubtitle">使用積分榜與最近一場正賽名次</p>
+            </div>
+            <span class="panel-code">FREE MODEL</span>
+          </div>
+          <div class="championship-status" id="predictionStatus" role="status" aria-live="polite">等待賽事資料…</div>
+          <div class="prediction-list" id="predictionList"></div>
+          <p class="prediction-note">非生成式 AI 或即時賠率。模型依本季積分排名（65%）與最近一場正賽名次（35%）排序；分數是相對指標，不代表勝率或保證結果。</p>
+        </article>
       </section>
 
       <section class="stats" aria-label="賽季摘要">
@@ -1501,8 +1555,8 @@
             </div>
             <div class="detail-stats" style="margin-top:16px">
               <div class="detail-stat">資料提供<b>OpenF1</b></div>
-              <div class="detail-stat">自動更新<b>60 秒</b></div>
-              <div class="detail-stat">目前模式<b>免費資料</b></div>
+              <div class="detail-stat">新聞更新<b>約 10 分鐘</b></div>
+              <div class="detail-stat">賽後名次<b>約 31 分鐘</b></div>
             </div>
             <p class="search-note">API 暫時無法連線時，系統會清楚顯示錯誤；不會以假資料代替。</p>
           </article>
@@ -1669,6 +1723,8 @@
     let countdownTimer;
     let requestController;
     let weatherController;
+    let newsController;
+    let newsRefreshTimer;
     let weatherLoadingSessionKey = "";
     let lastRequestAt = 0;
     let requestQueue = Promise.resolve();
@@ -2604,6 +2660,161 @@
       addShowMore(list, 5, kind === "drivers" ? "位車手" : "支車隊");
     }
 
+    function renderRacePrediction() {
+      const list = $("#predictionList");
+      list.replaceChildren();
+      const now = Date.now();
+      const nextRace = state.sessions.find((session) => new Date(session.date_start).getTime() > now)
+        || state.sessions.find((session) =>
+          new Date(session.date_start).getTime() <= now && new Date(session.date_end).getTime() >= now
+        );
+      if (!nextRace) {
+        $("#predictionStatus").textContent = "目前沒有尚未舉行的正賽可供預測。";
+        $("#predictionSubtitle").textContent = `${getYear()} 賽季`;
+        return;
+      }
+      $("#predictionSubtitle").textContent = `預測對象：${createRaceName(nextRace)}`;
+      const standings = state.driverStandings
+        .filter((entry) => Number.isFinite(Number(entry.position_current)))
+        .slice()
+        .sort((a, b) => Number(a.position_current) - Number(b.position_current));
+      if (!standings.length) {
+        $("#predictionStatus").textContent = "尚無可用的車手積分資料。";
+        return;
+      }
+      const latestByDriver = new Map();
+      state.positions.forEach((position) => {
+        const driverNumber = Number(position.driver_number);
+        const current = latestByDriver.get(driverNumber);
+        const positionNumber = Number(position.position);
+        const timestamp = new Date(position.date).getTime();
+        const currentTimestamp = current ? new Date(current.date).getTime() : NaN;
+        if (Number.isFinite(positionNumber) && positionNumber > 0 &&
+          (!current || timestamp > currentTimestamp)) {
+          latestByDriver.set(driverNumber, position);
+        }
+      });
+      const hasRecentResults = latestByDriver.size > 0;
+      const driversByNumber = new Map(state.drivers.map((driver) => [Number(driver.driver_number), driver]));
+      const denominator = Math.max(1, standings.length - 1);
+      const predictions = standings.map((standing, index) => {
+        const driverNumber = Number(standing.driver_number);
+        const recent = latestByDriver.get(driverNumber);
+        const championshipScore = 1 - index / denominator;
+        const recentPosition = Number(recent?.position);
+        const recentRank = hasRecentResults && Number.isFinite(recentPosition)
+          ? [...latestByDriver.values()].filter((item) => Number(item.position) < recentPosition).length
+          : index;
+        const recentScore = 1 - recentRank / Math.max(1, latestByDriver.size - 1);
+        const score = hasRecentResults
+          ? championshipScore * 0.65 + recentScore * 0.35
+          : championshipScore;
+        return {
+          standing,
+          driver: driversByNumber.get(driverNumber),
+          driverNumber,
+          recent,
+          score
+        };
+      }).filter((item) => item.driver);
+      predictions.sort((a, b) => b.score - a.score);
+      predictions.slice(0, 3).forEach((prediction, index) => {
+        const row = document.createElement("div");
+        const color = driverTeamColor(prediction.driver);
+        row.className = "prediction-row";
+        row.style.setProperty("--team-color", color);
+        const position = document.createElement("span");
+        position.className = "prediction-position";
+        position.textContent = String(index + 1);
+        const identity = document.createElement("span");
+        identity.className = "prediction-driver";
+        identity.append(createProfileLink(
+          `${driverShortCode(prediction.driver) || `#${prediction.driverNumber}`}　${driverDisplayName(prediction.driver)}`,
+          driverProfileHref(prediction.driver),
+          color
+        ));
+        const team = document.createElement("small");
+        const latestPlace = Number(prediction.recent?.position);
+        team.textContent = `${teamDisplayName(prediction.driver.team_name)}${Number.isFinite(latestPlace) ? ` · 最近 P${latestPlace}` : ""}`;
+        identity.append(team);
+        const score = document.createElement("span");
+        score.className = "prediction-score";
+        score.textContent = `${Math.round(prediction.score * 100)} / 100`;
+        row.append(position, identity, score);
+        list.append(row);
+      });
+      if (!predictions.length) {
+        $("#predictionStatus").textContent = "目前無法把積分資料對應到車手。";
+        return;
+      }
+      const latestDate = [...latestByDriver.values()]
+        .map((position) => new Date(position.date).getTime())
+        .filter(Number.isFinite)
+        .sort((a, b) => b - a)[0];
+      $("#predictionStatus").textContent = hasRecentResults
+        ? `參考 ${state.championshipSession ? createRaceName(state.championshipSession) : "本季積分榜"}${latestDate ? ` · 更新至 ${formatDate(latestDate)}` : ""}`
+        : "缺少最近正賽名次，這次僅依本季積分排名。";
+    }
+
+    async function loadF1News() {
+      if (newsController) newsController.abort();
+      newsController = new AbortController();
+      const { signal } = newsController;
+      $("#newsStatus").textContent = "正在載入最新標題…";
+      try {
+        const response = await fetch(getProxiedUrl(`${API_BASE}/news`, "news"), {
+          headers: { Accept: "application/json" },
+          signal
+        });
+        const data = await response.json();
+        if (response.status === 404) throw new Error("新聞代理尚未部署新版 Worker，請稍後再試。");
+        if (!response.ok) throw new Error(data.error || `新聞服務回應 HTTP ${response.status}。`);
+        if (!Array.isArray(data.articles)) throw new Error("新聞服務回傳格式不符預期。");
+        const list = $("#newsList");
+        list.replaceChildren();
+        data.articles.slice(0, 8).forEach((article) => {
+          let articleUrl;
+          try {
+            articleUrl = new URL(article.url);
+          } catch (error) {
+            console.warn("忽略格式無效的新聞連結。", error);
+            return;
+          }
+          const trustedHosts = ["formula1.com", "bbc.co.uk", "bbc.com", "autosport.com"];
+          if (articleUrl.protocol !== "https:" || !trustedHosts.some((host) =>
+            articleUrl.hostname === host || articleUrl.hostname.endsWith(`.${host}`)
+          )) return;
+          const item = document.createElement("article");
+          item.className = "news-item";
+          const link = document.createElement("a");
+          link.href = articleUrl.toString();
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = String(article.title || "未命名新聞").slice(0, 240);
+          const meta = document.createElement("div");
+          meta.className = "news-item-meta";
+          const source = document.createElement("span");
+          source.textContent = String(article.source || "F1 新聞");
+          const date = document.createElement("time");
+          date.dateTime = article.publishedAt || "";
+          date.textContent = article.publishedAt ? formatDate(article.publishedAt) : "發布時間未提供";
+          meta.append(source, date);
+          item.append(link, meta);
+          list.append(item);
+        });
+        if (!list.children.length) throw new Error("目前沒有可顯示的新聞標題。");
+        const availableSources = Array.isArray(data.sources)
+          ? data.sources.filter((source) => source.available).map((source) => source.name)
+          : [];
+        $("#newsStatus").textContent = `最近更新 ${formatDate(data.updatedAt)}${availableSources.length ? ` · ${availableSources.join("、")}` : ""} · 約每 10 分鐘更新`;
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        console.error("F1 新聞載入失敗。", error);
+        $("#newsList").replaceChildren();
+        $("#newsStatus").textContent = `新聞暫時無法載入：${error.message}`;
+      }
+    }
+
     async function loadChampionshipStandings(session, drivers, signal) {
       const suffix = `${getYear()} 賽季 · 截至 ${createRaceName(session)}`;
       $("#driverChampionshipSubtitle").textContent = suffix;
@@ -2637,6 +2848,7 @@
         $("#teamChampionshipList").replaceChildren();
         $("#teamChampionshipStatus").textContent = `車隊積分無法載入：${teamResult.reason.message}`;
       }
+      renderRacePrediction();
     }
 
     async function loadLatestClassification(signal) {
@@ -2663,6 +2875,7 @@
         $("#driverChampionshipList").replaceChildren();
         $("#teamChampionshipList").replaceChildren();
         renderDrivers();
+        renderRacePrediction();
         state.profileDataReady = true;
         if (/^#(?:driver|team)\//.test(location.hash)) handleRoute();
         return;
@@ -3975,8 +4188,10 @@
       $("#refreshButton").addEventListener("click", () => {
         clearApiCache();
         loadSeason();
+        loadF1News();
         showToast("正在更新賽事資料…");
       });
+      $("#newsRefreshButton").addEventListener("click", loadF1News);
       $$(".filter-button").forEach((button) =>
         button.addEventListener("click", () => setFilter(button.dataset.filter, button))
       );
@@ -3994,14 +4209,20 @@
         }
       });
       loadSeason();
+      loadF1News();
+      newsRefreshTimer = setInterval(() => {
+        if (!document.hidden && !$("#overview").classList.contains("detail-mode")) loadF1News();
+      }, 10 * 60 * 1000);
       countdownTimer = setInterval(updateCountdown, 1000);
       window.addEventListener("beforeunload", () => {
         clearTimeout(refreshTimer);
+        clearInterval(newsRefreshTimer);
         clearInterval(countdownTimer);
         if (requestController) requestController.abort();
         if (detailController) detailController.abort();
         if (driverDataController) driverDataController.abort();
         if (replayController) replayController.abort();
+        if (newsController) newsController.abort();
         if (replayFrame) cancelAnimationFrame(replayFrame);
       }, { once: true });
     }

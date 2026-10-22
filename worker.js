@@ -1,5 +1,22 @@
 const OPENF1_BASE = "https://api.openf1.org/v1";
 const OPEN_METEO_BASE = "https://api.open-meteo.com/v1/forecast";
+const NEWS_FEEDS = [
+  {
+    name: "Formula 1",
+    url: "https://www.formula1.com/en/latest/all.xml",
+    hosts: ["formula1.com"]
+  },
+  {
+    name: "BBC Sport",
+    url: "https://feeds.bbci.co.uk/sport/formula1/rss.xml",
+    hosts: ["bbc.co.uk", "bbc.com"]
+  },
+  {
+    name: "Autosport",
+    url: "https://www.autosport.com/rss/f1/news/",
+    hosts: ["autosport.com"]
+  }
+];
 const OPENF1_ENDPOINTS = new Set([
   "car_data",
   "championship_drivers",
@@ -142,6 +159,106 @@ function validateWeatherParams(params) {
     && params.get("timezone") === "auto";
 }
 
+function decodeXml(value) {
+  return value
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)))
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function readXmlTag(item, tagName) {
+  const expression = new RegExp(`<${tagName}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tagName}\\s*>`, "i");
+  return expression.exec(item)?.[1] || "";
+}
+
+function parseNewsFeed(xml, feed) {
+  const items = xml.match(/<item(?:\s[^>]*)?>[\s\S]*?<\/item\s*>/gi) || [];
+  return items.flatMap((item) => {
+    const title = decodeXml(readXmlTag(item, "title"));
+    const rawUrl = decodeXml(readXmlTag(item, "link"));
+    const publishedAt = decodeXml(readXmlTag(item, "pubDate"));
+    if (!title || !rawUrl) return [];
+    try {
+      const article = new URL(rawUrl);
+      if (article.protocol !== "https:" || !feed.hosts.some((host) =>
+        article.hostname === host || article.hostname.endsWith(`.${host}`)
+      )) return [];
+      const timestamp = Date.parse(publishedAt);
+      return [{
+        title: title.slice(0, 240),
+        url: article.toString(),
+        source: feed.name,
+        publishedAt: Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null
+      }];
+    } catch {
+      return [];
+    }
+  });
+}
+
+async function handleNews(request, requestUrl) {
+  const cache = caches.default;
+  const cacheKey = new Request(`${requestUrl.origin}/__cache/news`, { method: "GET" });
+  let cached;
+  try {
+    cached = await cache.match(cacheKey);
+  } catch (error) {
+    console.error("News cache lookup failed.", error);
+  }
+  if (cached) {
+    const headers = new Headers(cached.headers);
+    headers.set("X-Shared-Cache", "HIT");
+    return new Response(cached.body, { status: cached.status, headers });
+  }
+
+  const results = await Promise.all(NEWS_FEEDS.map(async (feed) => {
+    try {
+      const feedResponse = await cachedFetch(request, new URL(feed.url), 900);
+      if (!feedResponse.ok) throw new Error(`HTTP ${feedResponse.status}`);
+      return {
+        feed,
+        articles: parseNewsFeed(await feedResponse.text(), feed),
+        error: null
+      };
+    } catch (error) {
+      console.warn(`Unable to load ${feed.name} F1 news feed.`, error);
+      return { feed, articles: [], error: error.message };
+    }
+  }));
+  const articles = results.flatMap((result) => result.articles)
+    .sort((a, b) => (Date.parse(b.publishedAt) || 0) - (Date.parse(a.publishedAt) || 0))
+    .slice(0, 18);
+  if (!articles.length) return response(JSON.stringify({
+    error: "F1 news is temporarily unavailable.",
+    sources: results.map(({ feed, error }) => ({ name: feed.name, available: !error }))
+  }), 502, { "Cache-Control": "no-store" });
+
+  const body = JSON.stringify({
+    articles,
+    sources: results.map(({ feed, error }) => ({ name: feed.name, available: !error })),
+    updatedAt: new Date().toISOString()
+  });
+  const result = response(body, 200, {
+    "Cache-Control": "public, max-age=0, s-maxage=600",
+    "X-Shared-Cache": "MISS"
+  });
+  try {
+    await cache.put(cacheKey, result.clone());
+  } catch (error) {
+    console.error("News cache write failed.", error);
+  }
+  return result;
+}
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
@@ -167,6 +284,8 @@ export default {
         upstream.search = url.search;
         return await cachedFetch(request, upstream, 1800);
       }
+
+      if (url.pathname === "/news") return await handleNews(request, url);
 
       return response('{"error":"Not found."}', 404);
     } catch (error) {

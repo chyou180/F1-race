@@ -2,6 +2,8 @@
 
 This Worker caches the public OpenF1 and Open-Meteo responses at Cloudflare edge locations. Visitors served by the same location can reuse cached responses instead of each requesting the upstream service. The cache is edge-local, so a first request in another region may still fetch the upstream data.
 
+It also provides a cached `/news` endpoint that returns F1 headlines and links from Formula1.com, BBC Sport, and Autosport. The page links separately to a Traditional Chinese Google News search; it does not copy or re-host those search results. The local prediction panel uses championship standings and the latest race classification, with no paid AI service or API key.
+
 ## Deploy on the free plan
 
 1. Create or sign in to a Cloudflare account and open **Workers & Pages**.
@@ -26,3 +28,7 @@ npx wrangler deploy
 Then set `API_PROXY_BASE` to the URL printed by Wrangler and publish the updated page.
 
 The Worker only forwards a fixed list of public-data endpoints and validated query parameters. It contains no API credentials. Cloudflare's free Workers limits apply; this proxy reduces duplicate upstream requests but does not increase OpenF1's quota or guarantee that Cloudflare's daily free request allowance cannot be exceeded.
+
+## Update an existing Worker
+
+Whenever `worker.js` changes, deploy the updated file to Cloudflare for new routes or backend changes to take effect. With Wrangler, run `npx wrangler deploy` from the repository. In the dashboard, replace the Worker's code with the latest `worker.js` and deploy a new version.
