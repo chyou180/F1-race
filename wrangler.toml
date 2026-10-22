@@ -1,0 +1,4 @@
+name = "apex-f1-data-cache"
+main = "worker.js"
+compatibility_date = "2026-10-22"
+workers_dev = true

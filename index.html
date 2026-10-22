@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#111315">
   <title>APEX // F1 賽事資料系統</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
   <style>
     :root {
       color-scheme: dark;
@@ -37,7 +39,8 @@
       position: sticky; top: 0; height: 100vh; padding: 25px 17px 19px;
       background: #151719; border-right: 1px solid #ffffff0c; display: flex; flex-direction: column; z-index: 4;
     }
-    .brand { display: flex; align-items: center; gap: 11px; padding: 2px 6px 37px; }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 2px 6px 37px; color: inherit; text-decoration: none; }
+    .brand:hover .brand-mark { transform: skew(-7deg) translateY(-2px); }
     .brand-mark {
       width: 36px; height: 36px; display: grid; place-items: center; color: white;
       background: linear-gradient(145deg, var(--orange), var(--red)); font: 900 21px var(--display);
@@ -65,7 +68,8 @@
     .profile-label span { display: block; color: #737a7f; font-size: 9px; font-weight: 400; margin-top: 2px; }
     main { width: 100%; max-width: 1450px; margin: 0 auto; padding: 26px 38px 45px; }
     .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 27px; }
-    .breadcrumb { color: #7e8589; font-size: 10px; }
+    .breadcrumb { color: #7e8589; font-size: 10px; text-decoration: none; }
+    .breadcrumb:hover b { color: var(--orange); }
     .breadcrumb b { color: #d6d7d4; font-weight: 500; }
     .top-actions { display: flex; align-items: center; gap: 11px; }
     .live-status { display: flex; align-items: center; gap: 7px; color: #9ba1a3; font: 9px var(--mono); letter-spacing: .8px; }
@@ -100,6 +104,51 @@
     .hero-stat-label { color: #949a9d; font: 9px var(--mono); letter-spacing: 1px; }
     .hero-stat-value { margin-top: 6px; color: #ffd0b0; font: 800 31px/.95 var(--display); }
     .hero-stat-foot { margin-top: 8px; color: #a7adaf; font-size: 10px; }
+    .hero-session-button {
+      align-self: flex-start; margin-top: 10px; padding: 7px 10px; border: 1px solid #ffffff24;
+      border-radius: 8px; background: rgba(255, 255, 255, .07); color: #f3d1c0;
+      font-size: 9px; cursor: pointer; transition: background .18s, border-color .18s, color .18s;
+    }
+    .hero-session-button:hover:not(:disabled) { border-color: var(--red); background: rgba(255, 255, 255, .13); color: #fff; }
+    .hero-session-button:disabled { cursor: not-allowed; opacity: .55; }
+    .hero-weather {
+      display: grid; gap: 4px; margin-top: 10px; padding: 9px 10px;
+      border: 1px solid #ffffff1c; border-radius: 10px; background: rgba(5, 9, 13, .2);
+    }
+    .hero-weather-label { color: #a7adaf; font: 8px var(--mono); letter-spacing: .6px; }
+    .hero-weather-value { color: #f3f1ed; font-size: 10px; font-weight: 700; }
+    .hero-weather-note { color: #a7adaf; font-size: 8px; line-height: 1.5; }
+    body[data-theme="light"] .hero-weather { border-color: #ffffff30; background: rgba(5, 9, 13, .22); }
+    .weekend-panel { margin: 0 0 14px; padding: 16px 18px; }
+    .weekend-timeline { display: flex; gap: 8px; overflow-x: auto; padding: 12px 2px 4px; scrollbar-width: thin; }
+    .weekend-session {
+      position: relative; display: grid; flex: 0 0 132px; gap: 6px; min-height: 75px;
+      padding: 10px; border: 1px solid var(--glass-stroke); border-radius: 12px;
+      background: rgba(255, 255, 255, .045); color: var(--muted); text-align: left; cursor: pointer;
+    }
+    .weekend-session::before { position: absolute; top: 17px; left: -9px; width: 8px; border-top: 1px solid var(--glass-stroke); content: ""; }
+    .weekend-session:first-child::before { display: none; }
+    .weekend-session-date { font: 8px var(--mono); }
+    .weekend-session-name { color: var(--text); font-size: 10px; font-weight: 700; }
+    .weekend-session-state { color: var(--muted); font-size: 8px; }
+    .weekend-session.next { border-color: rgba(255, 75, 53, .62); background: rgba(255, 75, 53, .1); }
+    .weekend-session.next .weekend-session-state { color: var(--orange); }
+    .weekend-session.active { border-color: rgba(121, 217, 172, .62); background: rgba(121, 217, 172, .1); }
+    .weekend-session.active .weekend-session-state { color: var(--green); }
+    .weekend-session:hover { border-color: var(--red); }
+    .championship-actions { display: flex; align-items: center; justify-content: flex-end; margin: 8px 0 2px; }
+    .favorite-filter, .favorite-button, .profile-favorite {
+      border: 1px solid var(--glass-stroke); border-radius: 9px;
+      background: rgba(255, 255, 255, .045); color: var(--muted); cursor: pointer;
+    }
+    .favorite-filter { padding: 6px 9px; font-size: 9px; }
+    .favorite-filter[aria-pressed="true"], .favorite-button[aria-pressed="true"], .profile-favorite[aria-pressed="true"] {
+      border-color: rgba(255, 190, 87, .6); color: #ffc65c; background: rgba(255, 190, 87, .1);
+    }
+    .favorite-button { width: 28px; height: 28px; padding: 0; font-size: 15px; }
+    .favorite-button:hover, .favorite-filter:hover, .profile-favorite:hover { border-color: #ffc65c; }
+    .championship-row { grid-template-columns: 28px 42px minmax(0, 1fr) 46px 30px; }
+    .profile-favorite { margin-top: 8px; padding: 7px 9px; font-size: 9px; }
     .hero-countdown { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 11px; }
     .countdown-unit { min-width: 0; padding: 9px 6px 7px; border: 1px solid #ffffff16; background: #08090a50; text-align: center; }
     .countdown-unit b { display: block; color: #fff1e8; font: 900 clamp(23px, 2.5vw, 34px)/.95 var(--display); font-variant-numeric: tabular-nums; }
@@ -146,6 +195,20 @@
     .filter-button:hover, .filter-button.active { border-color: #ffffff16; color: var(--text); background: #ffffff08; }
     .item-count { margin-left: auto; color: #71797d; font: 9px var(--mono); }
     .race-list, .driver-list { display: grid; gap: 6px; }
+    .race-event { min-width: 0; }
+    .race-session-list { display: flex; flex-wrap: wrap; gap: 5px; padding: 6px 0 2px 16px; }
+    .race-session-button {
+      padding: 6px 8px; border: 1px solid var(--glass-stroke); border-radius: 999px;
+      background: rgba(255, 255, 255, .045); color: var(--muted); font-size: 9px; cursor: pointer;
+    }
+    .race-session-button:hover { border-color: var(--red); color: var(--text); }
+    .show-more-button {
+      width: 100%; margin-top: 8px; padding: 9px 12px; border: 1px solid var(--glass-stroke);
+      border-radius: 10px; background: rgba(255, 255, 255, .045); color: var(--muted);
+      font-size: 10px; cursor: pointer; transition: background .18s, color .18s, border-color .18s;
+    }
+    .show-more-button:hover { border-color: var(--red); background: rgba(255, 255, 255, .09); color: var(--text); }
+    .show-more-item[hidden] { display: none !important; }
     .race-row {
       position: relative; display: grid; grid-template-columns: 4px minmax(0, 1fr) auto auto; align-items: center;
       gap: 12px; min-height: 61px; padding: 8px 11px 8px 0; border: 1px solid #ffffff0a; background: #ffffff03;
@@ -163,12 +226,48 @@
     .empty-state { padding: 20px 8px; color: #838a8e; text-align: center; font-size: 10px; }
     .driver-row {
       display: grid; grid-template-columns: 31px minmax(0, 1fr) auto; align-items: center; gap: 10px;
-      padding: 9px 8px; border: 1px solid #ffffff0a; background: #ffffff03;
+      padding: 9px 8px; border: 1px solid #ffffff0a; border-left: 3px solid var(--team-color, var(--red)); background: #ffffff03;
     }
-    .driver-position { color: var(--orange); font: 700 17px var(--display); text-align: center; }
-    .driver-name { font-size: 10px; font-weight: 700; }
+    .driver-position { color: #858b8e; font: 700 15px var(--mono); text-align: center; }
+    .driver-name { color: var(--team-color, var(--text)); font-size: 10px; font-weight: 800; }
     .driver-team { margin-top: 3px; color: #7d8589; font-size: 9px; }
     .driver-number { color: #d6d7d4; font: 11px var(--mono); }
+    .championships { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0 0 14px; }
+    .championship-panel { min-width: 0; padding: 18px 19px; border: 1px solid #d8d0c4; background: #faf8f2; box-shadow: 0 4px 12px #362c1c0a; }
+    .championship-heading { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 8px; }
+    .championship-title { margin: 0; color: #1b1b1a; font: 900 19px/.95 "Yu Mincho", "Noto Serif TC", "Microsoft JhengHei", serif; }
+    .championship-subtitle { margin: 5px 0 0; color: #777268; font-size: 9px; }
+    .championship-code { color: #8b8174; font: 9px var(--mono); letter-spacing: .7px; white-space: nowrap; }
+    .championship-status { margin: 8px 0; color: #777268; font-size: 9px; }
+    .championship-list { display: grid; }
+    .championship-row {
+      display: grid; grid-template-columns: 28px 42px minmax(0, 1fr) 46px;
+      align-items: center; gap: 9px; min-height: 56px; padding: 6px 8px;
+      border-bottom: 1px solid #e2ddd3;
+    }
+    .championship-row:last-child { border-bottom: 0; }
+    .championship-position {
+      display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid #d7d0c4;
+      border-radius: 50%; background: #f3f0e9; color: #6c675e; font: 800 10px var(--mono);
+    }
+    .championship-position.top-1 { border-color: #d2aa57; background: #f3e7c9; color: #805d16; }
+    .championship-position.top-2 { border-color: #aab4be; background: #e9edf0; color: #56616c; }
+    .championship-position.top-3 { border-color: #c88a69; background: #f3e3d9; color: #875039; }
+    .championship-acronym { color: var(--team-color, #92989c); font: 900 11px var(--mono); }
+    .championship-name { display: block; overflow: hidden; color: #22211e; font-size: 10px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+    .championship-team { display: block; overflow: hidden; margin-top: 2px; color: #777268; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .championship-ring {
+      display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%;
+      background: conic-gradient(var(--team-color, #92989c) var(--score-progress, 0deg), #e6e2d9 0);
+    }
+    .championship-ring b {
+      display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+      background: #faf8f2; color: #24211d; font: 800 9px var(--mono);
+    }
+    .championship-empty { padding: 14px 8px; color: #777268; font-size: 10px; }
+    .detail-driver-label { display: inline-grid; grid-template-columns: auto auto; align-items: center; gap: 2px 7px; vertical-align: middle; }
+    .detail-driver-label b { color: var(--team-color); font: 900 10px var(--mono); }
+    .detail-driver-team { grid-column: 1 / -1; color: #777268; font-size: 8px; }
     .detail-box { margin-top: 12px; padding: 11px; border-top: 1px solid #ffffff12; background: #ffffff04; }
     .detail-top { display: flex; justify-content: space-between; gap: 12px; color: #81898d; font-size: 9px; }
     .detail-top b { color: var(--text); font-size: 10px; text-align: right; }
@@ -181,9 +280,48 @@
     #overview.detail-mode > .page-heading,
     #overview.detail-mode > .hero,
     #overview.detail-mode > .stats,
+    #overview.detail-mode > .championships,
     #overview.detail-mode > .content-grid,
     #overview.detail-mode > .footnote { display: none; }
     .detail-page { margin-top: 8px; }
+    .profile-hero {
+      position: relative; overflow: hidden; display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center; gap: 22px; padding: 26px; margin-bottom: 14px;
+      border: 1px solid var(--glass-stroke); border-left: 4px solid var(--profile-color, var(--red));
+      border-radius: 18px; background: var(--glass-dark); box-shadow: var(--glass-shadow);
+    }
+    .profile-mark {
+      display: grid; place-items: center; width: 74px; height: 74px; border: 1px solid var(--profile-color, var(--red));
+      border-radius: 22px; background: color-mix(in srgb, var(--profile-color, var(--red)) 14%, transparent);
+      color: var(--profile-color, var(--red)); font: 900 22px var(--mono);
+    }
+    .profile-kicker { color: var(--profile-color); font: 9px var(--mono); letter-spacing: 1.5px; }
+    .profile-title { margin: 7px 0 5px; color: var(--text); font: 900 clamp(27px, 4vw, 42px)/1 var(--display); }
+    .profile-subtitle { color: var(--muted); font-size: 11px; }
+    .profile-number { color: var(--profile-color, var(--red)); font: 900 clamp(42px, 7vw, 72px)/.9 var(--display); }
+    .profile-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .profile-metric { min-width: 0; padding: 14px; border: 1px solid var(--glass-stroke); border-radius: 14px; background: var(--glass-dark); box-shadow: var(--glass-shadow); }
+    .profile-metric span { display: block; color: var(--muted); font-size: 9px; }
+    .profile-metric b { display: block; overflow: hidden; margin-top: 7px; color: var(--text); font: 800 19px var(--display); text-overflow: ellipsis; white-space: nowrap; }
+    .profile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+    .profile-grid .panel { margin: 0; }
+    .profile-link { color: var(--team-color, var(--red)); font: inherit; font-weight: 800; text-decoration: none; }
+    .profile-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .profile-list { display: grid; gap: 6px; margin-top: 12px; }
+    .profile-list-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px; border: 1px solid var(--glass-stroke); border-radius: 11px; background: rgba(255, 255, 255, .035); }
+    .profile-empty { padding: 16px 8px; color: var(--muted); text-align: center; font-size: 10px; }
+    .profile-link:focus-visible, .brand:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; border-radius: 4px; }
+    #overview.detail-mode.profile-mode > #raceDetailPage { display: none; }
+    #overview.detail-mode.profile-mode > #profileDetailPage { display: block; }
+    @media (max-width: 850px) { .profile-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 570px) {
+      .profile-hero { grid-template-columns: 52px minmax(0, 1fr) auto; gap: 10px; padding: 16px 12px; }
+      .profile-mark { width: 48px; height: 48px; border-radius: 15px; font-size: 14px; }
+      .profile-title { font-size: clamp(22px, 6vw, 30px); }
+      .profile-subtitle { font-size: 9px; }
+      .profile-number { font-size: 31px; }
+      .profile-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
     .back-button {
       display: inline-flex; align-items: center; gap: 8px; padding: 8px 11px; margin-bottom: 15px;
       border: 1px solid #ffffff18; background: #ffffff06; color: #d9dcda; font-size: 10px; cursor: pointer;
@@ -238,6 +376,7 @@
       main { padding: 22px 22px 36px; }
       .mobile-menu { display: grid; }
       .content-grid { grid-template-columns: 1fr; }
+      .championships { grid-template-columns: 1fr; }
       .right-column { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
       .right-column .panel + .panel { margin-top: 0; }
       .detail-grid { grid-template-columns: 1fr; }
@@ -246,7 +385,8 @@
     @media (max-width: 570px) {
       main { padding: 16px 13px 28px; }
       .topbar { margin-bottom: 20px; }
-      .breadcrumb, .live-status { display: none; }
+      .breadcrumb { display: block; max-width: 34vw; overflow: hidden; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+      .live-status { display: none; }
       .page-heading { align-items: start; flex-direction: column; gap: 12px; margin-bottom: 15px; }
       .page-heading p { max-width: 300px; line-height: 1.7; }
       h1 { font-size: 37px; }
@@ -259,6 +399,13 @@
       .stat-card { min-height: 95px; padding: 12px; }
       .stat-value { font-size: 27px; }
       .content-grid { gap: 11px; }
+      .championship-panel { padding: 14px 11px; }
+      .championship-row { grid-template-columns: 26px 34px minmax(0, 1fr) 42px; gap: 5px; padding: 6px 5px; }
+      .championship-row { grid-template-columns: 26px 34px minmax(0, 1fr) 38px 26px; }
+      .championship-ring { width: 38px; height: 38px; }
+      .championship-ring b { width: 30px; height: 30px; font-size: 8px; }
+      .championship-name { font-size: 9px; }
+      .championship-code { font-size: 7px; }
       .right-column { grid-template-columns: 1fr; gap: 11px; }
       .panel { padding: 15px 13px; }
       .right-column .panel + .panel { margin-top: 0; }
@@ -411,9 +558,9 @@
     .race-state { color: #a3312c; }
     .race-row.completed .race-bar { background: #548266; }
     .race-row.completed .race-state { color: #39714d; }
-    .driver-row { border-color: #e8e2d8; background: #f6f3ec; }
-    .driver-position { color: var(--red); }
-    .driver-name { color: #262420; }
+    .driver-row { border-color: #e8e2d8; border-left-color: var(--team-color, var(--red)); background: #f6f3ec; }
+    .driver-position { color: var(--team-color, var(--red)); }
+    .driver-name { color: var(--team-color, #262420); }
     .driver-team { color: #777268; }
     .driver-number { color: #423e37; }
     .detail-box { border-color: #ddd5c8; background: #f5f1e9; }
@@ -581,10 +728,24 @@
     body[data-theme="dark"] .race-row.completed .race-bar { background: var(--green); }
     body[data-theme="dark"] .race-row.completed .race-state { color: var(--green); }
     body[data-theme="dark"] .driver-row { border-color: #ffffff0a; background: #ffffff03; }
-    body[data-theme="dark"] .driver-position { color: var(--orange); }
-    body[data-theme="dark"] .driver-name { color: var(--text); }
+    body[data-theme="dark"] .driver-position { color: var(--team-color, var(--orange)); }
+    body[data-theme="dark"] .driver-name { color: var(--team-color, var(--text)); }
     body[data-theme="dark"] .driver-team { color: #7d8589; }
     body[data-theme="dark"] .driver-number { color: #d6d7d4; }
+    body[data-theme="dark"] .championship-panel { border-color: #ffffff10; background: var(--surface); box-shadow: none; }
+    body[data-theme="dark"] .championship-title { color: var(--text); }
+    body[data-theme="dark"] .championship-subtitle, body[data-theme="dark"] .championship-status,
+    body[data-theme="dark"] .championship-team, body[data-theme="dark"] .championship-empty { color: #92989c; }
+    body[data-theme="dark"] .championship-code { color: #697176; }
+    body[data-theme="dark"] .championship-row { border-bottom-color: #303438; }
+    body[data-theme="dark"] .championship-name { color: #f3f1ed; }
+    body[data-theme="dark"] .championship-position { border-color: #434746; background: #222524; color: #bdc1be; }
+    body[data-theme="dark"] .championship-position.top-1 { border-color: #b89342; background: #4a3b1c; color: #f2d78e; }
+    body[data-theme="dark"] .championship-position.top-2 { border-color: #73808b; background: #30383e; color: #d0d8de; }
+    body[data-theme="dark"] .championship-position.top-3 { border-color: #98664d; background: #423026; color: #edb494; }
+    body[data-theme="dark"] .championship-ring { background: conic-gradient(var(--team-color, #92989c) var(--score-progress, 0deg), #303438 0); }
+    body[data-theme="dark"] .championship-ring b { background: var(--surface); color: #f3f1ed; }
+    body[data-theme="dark"] .driver-row { border-color: #ffffff0a; border-left-color: var(--team-color, var(--red)); background: #ffffff03; }
     body[data-theme="dark"] .detail-box { border-color: #ffffff12; background: #ffffff04; }
     body[data-theme="dark"] .detail-top { color: #81898d; }
     body[data-theme="dark"] .detail-top b { color: var(--text); }
@@ -599,6 +760,7 @@
     body[data-theme="dark"] .data-table-wrap { border-color: #ffffff0a; }
     body[data-theme="dark"] .data-table th { background: #222629; color: #a0a6a8; }
     body[data-theme="dark"] .data-table td { color: #d1d4d2; }
+    body[data-theme="dark"] .detail-driver-team { color: #92989c; }
     body[data-theme="dark"] .data-table th, body[data-theme="dark"] .data-table td { border-bottom-color: #ffffff0c; }
     body[data-theme="dark"] .data-loading { color: #92999c; }
     body[data-theme="dark"] .detail-metric { border-color: #ffffff0c; background: #ffffff04; color: #81898d; }
@@ -714,6 +876,7 @@
     }
     .replay-panel { overflow: hidden; }
     .replay-panel .panel-header { align-items: center; }
+    .replay-toggle { margin: 0 0 12px; }
     .replay-label {
       display: inline-flex; align-items: center; gap: 6px; color: var(--red);
       font: 8px var(--mono); letter-spacing: 1px;
@@ -728,15 +891,71 @@
       background-image: linear-gradient(#55513a0b 1px, transparent 1px), linear-gradient(90deg, #55513a0b 1px, transparent 1px);
       background-size: 24px 24px;
     }
+    .replay-race-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(250px, .8fr); gap: 12px; align-items: start; margin-top: 13px; }
+    .replay-race-layout .replay-stage { min-width: 0; margin: 0; }
+    .replay-leaderboard { overflow: hidden; border: 1px solid #d8d0c4; background: #faf8f2; }
+    .replay-leaderboard-header {
+      display: flex; justify-content: space-between; gap: 8px; padding: 11px 12px;
+      border-bottom: 1px solid #d8d0c4; color: #777268; font: 9px var(--mono); letter-spacing: 1px;
+    }
+    .replay-leaderboard-header b { color: var(--red); font-weight: 700; }
+    .replay-driver-list { max-height: 380px; overflow-y: auto; }
+    .replay-driver-row {
+      position: relative; display: grid; grid-template-columns: 24px 32px minmax(0, 1fr) auto;
+      align-items: center; gap: 8px; min-height: 47px; padding: 7px 10px;
+      border-bottom: 1px solid #e2ddd3; border-left: 3px solid var(--team-color, #92989c);
+      background: #faf8f2; transition: background .18s, transform .18s;
+    }
+    .replay-driver-row:last-child { border-bottom: 0; }
+    .replay-driver-row.leader { background: #f0ece3; }
+    .replay-driver-position { color: #8a8d91; font: 800 14px var(--mono); text-align: center; }
+    .replay-driver-acronym { color: var(--team-color, #92989c); font: 900 12px var(--mono); }
+    .replay-driver-identity { min-width: 0; }
+    .replay-driver-name { overflow: hidden; color: #22211e; font-size: 10px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+    .replay-driver-team { overflow: hidden; margin-top: 3px; color: #777268; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .replay-driver-number { color: #514c44; font: 10px var(--mono); }
+    .replay-leaderboard-empty { padding: 18px 12px; color: #777268; font-size: 10px; line-height: 1.6; text-align: center; }
+    .replay-leaderboard-status { padding: 7px 9px; border-bottom: 1px solid #e2ddd3; color: #777268; font-size: 8px; }
+    .replay-leaderboard-row {
+      display: grid; grid-template-columns: 26px 36px minmax(0, 1fr); align-items: center; gap: 7px;
+      min-height: 42px; padding: 6px 8px; border-bottom: 1px solid #e2ddd3;
+      border-left: 3px solid var(--team-color); background: #faf8f2;
+    }
+    .replay-leaderboard-row:last-child { border-bottom: 0; }
+    .replay-leaderboard-row.is-leading { background: #f0ece3; }
+    .replay-rank { color: #777268; font: 800 12px var(--mono); text-align: center; }
+    .replay-driver-number { color: #514c44; font: 9px var(--mono); }
+    .replay-driver-identity { min-width: 0; }
+    .replay-driver-identity b, .replay-driver-identity span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .replay-driver-identity b { color: var(--team-color); font: 900 10px var(--mono); }
+    .replay-driver-identity span { margin-top: 2px; color: #777268; font-size: 8px; }
     .replay-stage svg { display: block; width: 100%; height: clamp(220px, 36vw, 380px); }
     .replay-track-base { fill: none; stroke: #888277; stroke-width: 34; stroke-linecap: round; stroke-linejoin: round; }
     .replay-track-line { fill: none; stroke: #f7f4ed; stroke-width: 25; stroke-linecap: round; stroke-linejoin: round; }
     .replay-track-center { fill: none; stroke: #b9b1a3; stroke-width: 1; stroke-dasharray: 5 9; }
-    .replay-marker { filter: drop-shadow(0 3px 3px #17181788); }
-    .replay-marker circle { fill: var(--red); stroke: #fff8ed; stroke-width: 3; }
-    .replay-marker path { fill: #fff8ed; }
-    .replay-marker text { fill: #fff8ed; font: 800 13px var(--mono); text-anchor: middle; dominant-baseline: central; }
+    .replay-marker { filter: drop-shadow(0 2px 3px #17181799); }
+    .replay-marker circle { stroke: #fff8ed; stroke-width: 2.5; }
+    .replay-marker text { fill: #fff; font: 900 10px var(--mono); text-anchor: middle; dominant-baseline: central; paint-order: stroke; stroke: #171817; stroke-width: 2px; }
     .replay-corner { fill: #777268; font: 700 13px var(--mono); }
+    .replay-start-lights {
+      position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 9px;
+      padding: 7px 10px; border: 1px solid #d8d0c4; background: #171817e8; color: #f5eee3;
+    }
+    .replay-start-lights[hidden] { display: none; }
+    .replay-start-lights-label { color: #eee7dc; font: 8px var(--mono); letter-spacing: 1px; }
+    .replay-start-lights-bulbs { display: flex; gap: 5px; }
+    .replay-start-lights-bulbs span {
+      width: 9px; height: 9px; border-radius: 50%; background: #451b20;
+      box-shadow: inset 0 0 0 1px #ff7a7666; transition: background .12s, box-shadow .12s;
+    }
+    .replay-start-lights-bulbs span.on { background: #f12632; box-shadow: 0 0 9px #ff3035c9, inset 0 0 0 1px #ffd0cc; }
+    .replay-start-lights.lights-out .replay-start-lights-bulbs span { background: #451b20; box-shadow: inset 0 0 0 1px #ff7a7666; }
+    .replay-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .replay-legend-item {
+      display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px;
+      border: 1px solid #d8d0c4; background: #f6f3ec; color: #262420; font: 9px var(--mono);
+    }
+    .replay-legend-swatch { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px #17181733; }
     .replay-empty {
       position: absolute; inset: 0; display: grid; place-items: center; padding: 22px;
       color: #6d6a61; text-align: center; font-size: 11px; line-height: 1.7;
@@ -756,6 +975,20 @@
       border-color: #3a3d3c; background-color: #222524;
       background-image: linear-gradient(#ffffff0a 1px, transparent 1px), linear-gradient(90deg, #ffffff0a 1px, transparent 1px);
     }
+    body[data-theme="dark"] .replay-leaderboard { border-color: #3a3d3c; background: #191c1f; }
+    body[data-theme="dark"] .replay-leaderboard-header { border-bottom-color: #303438; color: #92989c; }
+    body[data-theme="dark"] .replay-driver-row { border-bottom-color: #303438; background: #191c1f; }
+    body[data-theme="dark"] .replay-driver-row.leader { background: #242729; }
+    body[data-theme="dark"] .replay-driver-position { color: #92989c; }
+    body[data-theme="dark"] .replay-driver-name { color: #f3f1ed; }
+    body[data-theme="dark"] .replay-driver-team, body[data-theme="dark"] .replay-leaderboard-empty { color: #92989c; }
+    body[data-theme="dark"] .replay-driver-number { color: #d6d7d4; }
+    body[data-theme="dark"] .replay-leaderboard-status { border-bottom-color: #303438; color: #92989c; }
+    body[data-theme="dark"] .replay-leaderboard-row { border-bottom-color: #303438; background: #191c1f; }
+    body[data-theme="dark"] .replay-leaderboard-row.is-leading { background: #242729; }
+    body[data-theme="dark"] .replay-rank { color: #92989c; }
+    body[data-theme="dark"] .replay-driver-number { color: #d6d7d4; }
+    body[data-theme="dark"] .replay-driver-identity span { color: #92989c; }
     body[data-theme="dark"] .replay-track-base { stroke: #626766; }
     body[data-theme="dark"] .replay-track-line { stroke: #d9d8cf; }
     body[data-theme="dark"] .replay-track-center { stroke: #92938b; }
@@ -763,27 +996,299 @@
     body[data-theme="dark"] .replay-empty { color: #b4b5ad; }
     body[data-theme="dark"] .replay-button { border-color: #434746; background: #222524; color: #f3f1ed; }
     body[data-theme="dark"] .replay-time { color: #b4b5ad; }
+    body[data-theme="dark"] .replay-start-lights { border-color: #434746; }
+    body[data-theme="dark"] .replay-legend-item { border-color: #434746; background: #222524; color: #f3f1ed; }
+    .gsap-ready .hero,
+    .gsap-ready .stat-card,
+    .gsap-ready .race-row { animation: none; }
     @media (max-width: 570px) {
       .replay-stage { min-height: 190px; }
       .replay-stage svg { height: 230px; }
+      .replay-race-layout { grid-template-columns: 1fr; }
+      .replay-driver-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 300px; }
       .replay-controls { grid-template-columns: auto auto minmax(0, 1fr); gap: 6px; }
       .replay-time { grid-column: 1 / -1; text-align: left; }
       .replay-button { min-width: 60px; padding: 0 8px; }
       .replay-speed { width: 68px; }
+    }
+    :root {
+      --glass-dark: rgba(20, 28, 37, .72);
+      --glass-dark-raised: rgba(34, 43, 52, .62);
+      --glass-light: rgba(255, 255, 255, .68);
+      --glass-light-raised: rgba(255, 255, 255, .5);
+      --glass-stroke: rgba(255, 255, 255, .15);
+      --glass-shadow: 0 18px 48px rgba(5, 12, 20, .12), inset 0 1px rgba(255, 255, 255, .2);
+      --glass-blur: 22px;
+    }
+    body { position: relative; isolation: isolate; background-color: #0e141b; }
+    body::before {
+      position: fixed; z-index: 0; inset: -24%; content: ""; pointer-events: none;
+      background:
+        radial-gradient(ellipse at 18% 25%, rgba(30, 194, 174, .19), transparent 34%),
+        radial-gradient(ellipse at 78% 18%, rgba(255, 93, 66, .17), transparent 31%),
+        radial-gradient(ellipse at 66% 78%, rgba(75, 121, 196, .18), transparent 38%);
+      filter: blur(38px); animation: ambient-flow 28s ease-in-out infinite alternate;
+    }
+    .app { position: relative; z-index: 1; }
+    @keyframes ambient-flow {
+      from { transform: translate3d(-1.5%, -1%, 0) scale(1); }
+      to { transform: translate3d(1.5%, 1%, 0) scale(1.06); }
+    }
+    .sidebar {
+      background: rgba(16, 22, 29, .74); border-right-color: rgba(255, 255, 255, .12);
+      box-shadow: 12px 0 42px rgba(0, 0, 0, .12);
+    }
+    .season-card, .stat-card, .panel, .championship-panel, .detail-hero,
+    .detail-box, .detail-metric, .profile-hero, .profile-metric, .replay-leaderboard, .data-table-wrap {
+      border-color: var(--glass-stroke); background: var(--glass-dark);
+      box-shadow: var(--glass-shadow);
+    }
+    .season-card, .stat-card, .panel, .championship-panel, .detail-hero,
+    .detail-box, .detail-metric, .profile-hero, .profile-metric, .replay-leaderboard, .data-table-wrap,
+    .topbar, .icon-button, .back-button, .search-input, .select-input,
+    .filter-button.active, .filter-button:hover, .race-row, .driver-row,
+    .championship-row, .replay-leaderboard-row, .replay-button,
+    .replay-start-lights, .replay-legend-item {
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(145%);
+      backdrop-filter: blur(var(--glass-blur)) saturate(145%);
+    }
+    .sidebar { -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(145%); backdrop-filter: blur(var(--glass-blur)) saturate(145%); }
+    .hero {
+      border-color: rgba(255, 255, 255, .22);
+      background:
+        radial-gradient(ellipse at 88% 12%, rgba(255, 106, 74, .23), transparent 36%),
+        linear-gradient(112deg, rgba(32, 52, 63, .82), rgba(28, 34, 42, .7) 52%, rgba(60, 35, 39, .76));
+      box-shadow: 0 24px 56px rgba(0, 0, 0, .22), inset 0 1px rgba(255, 255, 255, .2);
+      -webkit-backdrop-filter: blur(28px) saturate(155%);
+      backdrop-filter: blur(28px) saturate(155%);
+    }
+    .hero::after { color: rgba(255, 255, 255, .055); }
+    .topbar {
+      position: sticky; top: 0; z-index: 3; min-height: 52px; padding: 8px 12px;
+      margin: -10px -12px 22px; border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 15px; background: rgba(15, 21, 28, .66);
+    }
+    .icon-button, .back-button, .search-input, .select-input, .replay-button {
+      border-color: rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .075);
+      box-shadow: inset 0 1px rgba(255, 255, 255, .12);
+    }
+    .icon-button { border-radius: 11px; transition: transform .2s, background .2s, border-color .2s; }
+    .icon-button:hover, .back-button:hover, .replay-button:hover:not(:disabled) {
+      transform: translateY(-1px); background: rgba(255, 255, 255, .14);
+    }
+    .search-button, .refresh-button { border-radius: 10px; box-shadow: 0 7px 18px rgba(255, 75, 53, .2); }
+    .season-pill { border-radius: 999px; background: rgba(255, 255, 255, .055); }
+    .countdown-unit { border-color: rgba(255, 255, 255, .14); border-radius: 12px; background: rgba(5, 9, 13, .32); }
+    .race-row, .driver-row, .championship-row, .replay-leaderboard-row {
+      border-color: rgba(255, 255, 255, .1); border-radius: 12px;
+      background: rgba(255, 255, 255, .035); transition: transform .2s, background .2s, border-color .2s;
+    }
+    .race-row:hover, .driver-row:hover, .replay-leaderboard-row:hover { background: rgba(255, 255, 255, .09); }
+    .race-row.selected { border-color: rgba(255, 113, 69, .4); background: rgba(255, 113, 69, .09); }
+    .driver-row { border-left-color: var(--team-color, var(--red)); }
+    .championship-row { border-right: 1px solid transparent; border-left: 1px solid transparent; }
+    .championship-row:hover { border-color: rgba(255, 255, 255, .13); background: rgba(255, 255, 255, .06); }
+    .championship-position { box-shadow: inset 0 1px rgba(255, 255, 255, .28); }
+    .championship-ring { filter: drop-shadow(0 3px 9px color-mix(in srgb, var(--team-color, #92989c) 24%, transparent)); }
+    .data-table-wrap { overflow: auto; border-radius: 12px; }
+    .data-table th { background: rgba(255, 255, 255, .07); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+    .detail-controls .select-input, .replay-speed { border-radius: 10px; }
+    .replay-stage { border-radius: 16px; box-shadow: inset 0 1px rgba(255, 255, 255, .35), 0 12px 30px rgba(0, 0, 0, .14); }
+    .replay-leaderboard { border-radius: 15px; }
+    .replay-leaderboard-row { border-left: 3px solid var(--team-color); }
+    .replay-start-lights { border-radius: 999px; box-shadow: 0 8px 26px rgba(0, 0, 0, .22), inset 0 1px rgba(255, 255, 255, .14); }
+    .toast { border: 1px solid rgba(255, 255, 255, .15); border-radius: 12px; box-shadow: 0 18px 44px rgba(0, 0, 0, .28); }
+    body[data-theme="dark"] {
+      background-color: #0e141b;
+      background-image:
+        radial-gradient(ellipse at 78% -15%, rgba(109, 37, 26, .22), transparent 42%),
+        linear-gradient(145deg, #111923, #0e141b);
+    }
+    body[data-theme="dark"] .sidebar { background: rgba(16, 22, 29, .74); }
+    body[data-theme="dark"] .season-card, body[data-theme="dark"] .stat-card,
+    body[data-theme="dark"] .panel, body[data-theme="dark"] .championship-panel,
+    body[data-theme="dark"] .detail-hero, body[data-theme="dark"] .detail-box,
+    body[data-theme="dark"] .detail-metric, body[data-theme="dark"] .profile-hero,
+    body[data-theme="dark"] .profile-metric, body[data-theme="dark"] .replay-leaderboard,
+    body[data-theme="dark"] .data-table-wrap { border-color: var(--glass-stroke); background: var(--glass-dark); box-shadow: var(--glass-shadow); }
+    body[data-theme="dark"] .hero {
+      background:
+        radial-gradient(ellipse at 88% 12%, rgba(255, 106, 74, .23), transparent 36%),
+        linear-gradient(112deg, rgba(32, 52, 63, .82), rgba(28, 34, 42, .7) 52%, rgba(60, 35, 39, .76));
+      box-shadow: 0 24px 56px rgba(0, 0, 0, .22), inset 0 1px rgba(255, 255, 255, .2);
+    }
+    body[data-theme="dark"] .icon-button, body[data-theme="dark"] .back-button,
+    body[data-theme="dark"] .search-input, body[data-theme="dark"] .select-input,
+    body[data-theme="dark"] .replay-button {
+      border-color: rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .075);
+      box-shadow: inset 0 1px rgba(255, 255, 255, .12);
+    }
+    body[data-theme="dark"] .countdown-unit { border-color: rgba(255, 255, 255, .14); background: rgba(5, 9, 13, .32); }
+    body[data-theme="dark"] .race-row, body[data-theme="dark"] .driver-row,
+    body[data-theme="dark"] .championship-row, body[data-theme="dark"] .replay-leaderboard-row {
+      border-color: rgba(255, 255, 255, .1); background: rgba(255, 255, 255, .035);
+    }
+    body[data-theme="dark"] .race-row:hover, body[data-theme="dark"] .driver-row:hover,
+    body[data-theme="dark"] .replay-leaderboard-row:hover { background: rgba(255, 255, 255, .09); }
+    body[data-theme="dark"] .race-row.selected { border-color: rgba(255, 113, 69, .4); background: rgba(255, 113, 69, .09); }
+    body[data-theme="dark"] .championship-row:hover { border-color: rgba(255, 255, 255, .13); background: rgba(255, 255, 255, .06); }
+    body[data-theme="dark"] .data-table th { background: rgba(255, 255, 255, .07); }
+    body[data-theme="dark"] .topbar { border: 1px solid rgba(255, 255, 255, .1); background: rgba(15, 21, 28, .66); }
+    body[data-theme="light"] {
+      background-color: #e7edf2;
+      background-image:
+        radial-gradient(ellipse at 78% -15%, rgba(231, 130, 99, .12), transparent 42%),
+        linear-gradient(145deg, #edf2f5, #e4ebf0);
+    }
+    body[data-theme="light"]::before {
+      background:
+        radial-gradient(ellipse at 18% 25%, rgba(32, 192, 169, .15), transparent 34%),
+        radial-gradient(ellipse at 78% 18%, rgba(255, 132, 102, .14), transparent 31%),
+        radial-gradient(ellipse at 66% 78%, rgba(93, 139, 207, .15), transparent 38%);
+    }
+    body[data-theme="light"] .sidebar {
+      background: rgba(244, 248, 250, .76); border-right-color: rgba(255, 255, 255, .75);
+      box-shadow: 12px 0 42px rgba(52, 70, 84, .08);
+    }
+    body[data-theme="light"] .season-card, body[data-theme="light"] .stat-card,
+    body[data-theme="light"] .panel, body[data-theme="light"] .championship-panel,
+    body[data-theme="light"] .detail-hero, body[data-theme="light"] .profile-hero,
+    body[data-theme="light"] .detail-box, body[data-theme="light"] .detail-metric,
+    body[data-theme="light"] .profile-metric, body[data-theme="light"] .replay-leaderboard,
+    body[data-theme="light"] .data-table-wrap {
+      border-color: rgba(255, 255, 255, .8); background: var(--glass-light);
+      box-shadow: 0 18px 44px rgba(72, 91, 108, .1), inset 0 1px rgba(255, 255, 255, .9);
+    }
+    body[data-theme="light"] .hero {
+      border-color: rgba(255, 255, 255, .82);
+      background:
+        radial-gradient(ellipse at 88% 12%, rgba(255, 129, 101, .18), transparent 36%),
+        linear-gradient(112deg, rgba(255, 255, 255, .87), rgba(243, 248, 249, .76) 52%, rgba(255, 238, 227, .79));
+      box-shadow: 0 24px 56px rgba(72, 91, 108, .12), inset 0 1px rgba(255, 255, 255, .95);
+    }
+    body[data-theme="light"] .hero::after { color: rgba(27, 45, 58, .045); }
+    body[data-theme="light"] .topbar {
+      border-color: rgba(255, 255, 255, .75); background: rgba(244, 248, 250, .72);
+      box-shadow: 0 8px 24px rgba(72, 91, 108, .08), inset 0 1px rgba(255, 255, 255, .9);
+    }
+    body[data-theme="light"] .icon-button, body[data-theme="light"] .back-button,
+    body[data-theme="light"] .search-input, body[data-theme="light"] .select-input,
+    body[data-theme="light"] .replay-button {
+      border-color: rgba(255, 255, 255, .88); background: rgba(255, 255, 255, .57);
+      box-shadow: inset 0 1px rgba(255, 255, 255, .95), 0 4px 12px rgba(74, 93, 111, .06);
+    }
+    body[data-theme="light"] .countdown-unit { border-color: rgba(255, 255, 255, .78); background: rgba(255, 255, 255, .5); }
+    body[data-theme="light"] .race-row, body[data-theme="light"] .driver-row,
+    body[data-theme="light"] .championship-row, body[data-theme="light"] .replay-leaderboard-row {
+      border-color: rgba(255, 255, 255, .72); background: rgba(255, 255, 255, .35);
+      box-shadow: inset 0 1px rgba(255, 255, 255, .58);
+    }
+    body[data-theme="light"] .race-row:hover, body[data-theme="light"] .driver-row:hover,
+    body[data-theme="light"] .replay-leaderboard-row:hover { background: rgba(255, 255, 255, .68); }
+    body[data-theme="light"] .race-row.selected { border-color: rgba(216, 34, 47, .28); background: rgba(255, 235, 228, .72); }
+    body[data-theme="light"] .championship-row:hover { border-color: rgba(255, 255, 255, .9); background: rgba(255, 255, 255, .68); }
+    body[data-theme="light"] .championship-ring b { background: #f8fafb; }
+    body[data-theme="light"] .data-table th { background: rgba(236, 242, 245, .78); }
+    body[data-theme="light"] .replay-start-lights { border-color: rgba(255, 255, 255, .48); }
+    @supports (backdrop-filter: blur(1px)) {
+      .season-card, .stat-card, .panel, .championship-panel, .detail-hero,
+      .detail-box, .detail-metric, .profile-hero, .profile-metric, .replay-leaderboard, .data-table-wrap {
+        background: var(--glass-dark);
+      }
+      body[data-theme="light"] .season-card, body[data-theme="light"] .stat-card,
+      body[data-theme="light"] .panel, body[data-theme="light"] .championship-panel,
+      body[data-theme="light"] .detail-hero, body[data-theme="light"] .detail-box,
+      body[data-theme="light"] .profile-hero, body[data-theme="light"] .detail-metric,
+      body[data-theme="light"] .profile-metric, body[data-theme="light"] .replay-leaderboard,
+      body[data-theme="light"] .data-table-wrap { background: var(--glass-light); }
+    }
+    @media (max-width: 850px) {
+      .topbar { top: 7px; margin: -7px -8px 20px; }
+      body[data-theme="dark"] .sidebar, body[data-theme="light"] .sidebar {
+        border: 1px solid rgba(255, 255, 255, .2); border-radius: 0 0 18px 0;
+        background: rgba(20, 28, 37, .88); -webkit-backdrop-filter: blur(26px); backdrop-filter: blur(26px);
+      }
+      body[data-theme="light"] .sidebar { background: rgba(244, 248, 250, .92); }
+    }
+    @media (max-width: 570px) {
+      :root { --glass-blur: 16px; }
+      .topbar { border-radius: 13px; }
+      .hero, .panel, .championship-panel, .stat-card { border-radius: 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body::before { animation: none; }
+    }
+    .race-track {
+      height: 24px;
+      overflow: hidden;
+      border-top: 1px solid rgba(255, 255, 255, .14);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .055), rgba(10, 16, 21, .22));
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+    }
+    .race-track::before {
+      top: 11px;
+      border-top: 1px dashed rgba(235, 241, 244, .3);
+    }
+    .track-car {
+      top: 1px;
+      left: 0;
+      width: 70px;
+      height: 21px;
+      transform: translateX(-100%);
+      animation: track-sprint 8s linear infinite;
+      will-change: left;
+    }
+    .track-car::before {
+      top: 10px;
+      right: calc(100% - 2px);
+      width: 30px;
+      border-top: 1px solid rgba(255, 113, 82, .45);
+      box-shadow: 0 3px 8px rgba(255, 75, 53, .2);
+      animation: none;
+    }
+    .track-car svg {
+      overflow: visible;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .25));
+    }
+    .track-car svg circle:nth-of-type(n) { animation: none; }
+    @keyframes track-sprint {
+      from { left: 0; }
+      to { left: 100%; }
+    }
+    body[data-theme="light"] .race-track {
+      border-top-color: rgba(255, 255, 255, .72);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .58), rgba(221, 230, 235, .3));
+    }
+    body[data-theme="light"] .race-track::before { border-top-color: rgba(75, 91, 102, .28); }
+    body[data-theme="light"] .track-car::before {
+      border-top-color: rgba(203, 55, 46, .48);
+      box-shadow: 0 3px 8px rgba(203, 55, 46, .17);
+    }
+    @media (max-width: 570px) {
+      .race-track { height: 22px; }
+      .race-track::before { top: 10px; }
+      .track-car { top: 1px; width: 62px; height: 19px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .track-car { left: 50%; transform: translateX(-50%); animation: none; }
+      .track-car::before { animation: none; }
+      .track-car svg circle { animation: none !important; }
     }
   </style>
 </head>
 <body>
   <div class="app">
     <aside class="sidebar" id="sidebar">
-      <div class="brand">
+      <a class="brand" href="#overview" aria-label="APEX F1 賽季總覽">
         <div class="brand-mark" aria-hidden="true">A</div>
         <div class="brand-name">APEX<span>F1 RACE CONTROL</span></div>
-      </div>
+      </a>
       <div class="nav-caption">RACE CONTROL</div>
       <nav class="nav" aria-label="主要導覽">
         <a class="active" href="#overview"><span class="nav-icon">▦</span>賽季總覽</a>
         <a href="#calendar"><span class="nav-icon">◷</span>賽程與分站</a>
+        <a href="#championships"><span class="nav-icon">▤</span>年度積分榜</a>
         <a href="#classification"><span class="nav-icon">⌖</span>最近賽事名次</a>
         <a href="#data-info"><span class="nav-icon">⌁</span>資料說明</a>
       </nav>
@@ -801,7 +1306,7 @@
 
     <main id="overview">
       <header class="topbar">
-        <div class="breadcrumb">F1 RACE CONTROL　/　<b id="breadcrumbLabel">賽季總覽</b></div>
+        <a class="breadcrumb" href="#overview" aria-label="返回賽季總覽">F1 RACE CONTROL　/　<b id="breadcrumbLabel">賽季總覽</b></a>
         <div class="top-actions">
           <span class="live-status"><span class="live-dot" id="connectionDot"></span><span id="connectionStatus">CONNECTING</span></span>
           <button class="icon-button mobile-menu" id="menuButton" type="button" aria-label="開啟導覽選單" aria-expanded="false">☰</button>
@@ -821,7 +1326,7 @@
         </label>
       </section>
 
-      <section class="hero" aria-label="下一場正賽與倒數">
+      <section class="hero" aria-label="下一個賽段與倒數">
         <div class="hero-main">
           <div class="hero-overline" id="heroOverline">NEXT GRAND PRIX / 下一場正賽</div>
           <h2 class="hero-title" id="heroTitle">正在載入賽事資料…</h2>
@@ -829,7 +1334,7 @@
         </div>
         <div class="hero-stats">
           <div class="hero-stat-label" id="heroStatLabel">距離下一場正賽</div>
-          <div class="hero-countdown" id="heroCountdown" aria-label="距離下一場正賽的倒數時間">
+          <div class="hero-countdown" id="heroCountdown" aria-label="距離下一個賽段的倒數時間">
             <div class="countdown-unit"><b id="countdownDays">--</b><span>天 DAYS</span></div>
             <div class="countdown-unit"><b id="countdownHours">--</b><span>時 HRS</span></div>
             <div class="countdown-unit"><b id="countdownMinutes">--</b><span>分 MIN</span></div>
@@ -837,6 +1342,12 @@
           </div>
           <div class="hero-stat-value" id="heroStatValue" hidden>—</div>
           <div class="hero-stat-foot" id="heroStatFoot">等待賽程資料</div>
+          <button class="hero-session-button" id="nextSessionButton" type="button" disabled>查看賽段資料 ↗</button>
+          <div class="hero-weather" id="nextSessionWeather" aria-live="polite">
+            <span class="hero-weather-label">賽段天氣 FORECAST</span>
+            <span class="hero-weather-value" id="weatherForecastValue">等待賽程資料…</span>
+            <span class="hero-weather-note" id="weatherForecastNote">使用賽道位置查詢預報；尚未發布時會清楚標示。</span>
+          </div>
         </div>
         <div class="search-panel">
           <label for="raceSelect">選取分站查看獨立賽事頁面</label>
@@ -852,19 +1363,31 @@
         </div>
         <div class="race-track" aria-hidden="true">
           <span class="track-car">
-            <svg viewBox="0 0 100 36" focusable="false">
-              <path fill="#9e1724" d="M3 18h15l12-7h17l10 7h14l10-5h10l8 5h3v5H87a7 7 0 0 0-14 0H38a7 7 0 0 0-14 0H10l-7-2z"/>
-              <path fill="#e52b37" d="M7 16h15l9-9h18l9 10H38l-8 4H12z"/>
-              <path fill="#f5eee3" d="m34 9-7 7h28l-7-7z"/>
-              <path fill="#242522" d="m40 9 3-6h8l6 8-4 2z"/>
-              <path fill="#f5eee3" d="M43 5a4 4 0 0 1 8 0z"/>
-              <path fill="#c72231" d="M69 17h17l7 2v2H69z"/>
-              <path fill="#e52b37" d="M4 12h15v3H4zm87 3h8v3h-8z"/>
-              <path fill="#ffb7a7" d="M13 17h14l4-3h11l3 2H29l-7 4H13z"/>
-              <circle cx="31" cy="23" r="6.5" fill="#171817"/><circle cx="31" cy="23" r="2.5" fill="#d8d0c4"/>
-              <circle cx="80" cy="23" r="6.5" fill="#171817"/><circle cx="80" cy="23" r="2.5" fill="#d8d0c4"/>
+            <svg viewBox="0 0 120 36" focusable="false">
+              <path fill="#20262b" d="M4 23h14l13-5h19l9-7h13l10 7h17l11-4h6v4l-11 2a7 7 0 0 1-14 0H39a7 7 0 0 1-14 0H8z"/>
+              <path fill="#e94339" d="M9 20h19l8-7h22l7 5-6 3H40l-8 3H13z"/>
+              <path fill="#f4f1e9" d="m39 14-6 5h25l-5-5z"/>
+              <path fill="#252b30" d="m46 14 4-8h8l7 9-4 2z"/>
+              <path fill="#f4f1e9" d="M49 7a4 4 0 0 1 8 0z"/>
+              <path fill="#f16a50" d="M72 17h24l9 3v2H73z"/>
+              <path fill="#f4f1e9" d="M6 17h13v2H6zm101 1h8v2h-8z"/>
+              <circle cx="32" cy="23" r="5.5" fill="#151a1e"/><circle cx="32" cy="23" r="2" fill="#bfc7c9"/>
+              <circle cx="90" cy="23" r="5.5" fill="#151a1e"/><circle cx="90" cy="23" r="2" fill="#bfc7c9"/>
             </svg>
           </span>
+        </div>
+      </section>
+
+      <section class="panel weekend-panel" id="weekendTimelineSection" aria-label="下一分站賽週末時間軸">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">賽週末時間軸</h2>
+            <p class="panel-subtitle" id="weekendTimelineSubtitle">載入下一分站所有練習、排位與正賽時間</p>
+          </div>
+          <span class="panel-code">WEEKEND SESSIONS</span>
+        </div>
+        <div class="weekend-timeline" id="weekendTimeline" aria-live="polite">
+          <div class="empty-state">正在載入賽程…</div>
         </div>
       </section>
 
@@ -888,6 +1411,37 @@
           <div class="stat-top"><span class="stat-label">最近檢查</span><span class="stat-glyph">⟳</span></div>
           <div class="stat-value" id="updatedValue" style="font-size:20px">—</div>
           <div class="stat-foot">每 60 秒檢查，資料暫存 5 分鐘</div>
+        </article>
+      </section>
+
+      <section class="championships" id="championships" aria-label="年度車手與車隊積分榜">
+        <article class="championship-panel">
+          <div class="championship-heading">
+            <div>
+              <h2 class="championship-title">車手積分榜</h2>
+              <p class="championship-subtitle" id="driverChampionshipSubtitle">本季車手錦標賽排名</p>
+            </div>
+            <span class="championship-code">DRIVER TELEMETRY</span>
+          </div>
+          <div class="championship-status" id="driverChampionshipStatus" role="status">等待賽季資料…</div>
+          <div class="championship-actions">
+            <button class="favorite-filter" id="driverFavoritesToggle" type="button" aria-pressed="false">只看收藏 · 0</button>
+          </div>
+          <div class="championship-list" id="driverChampionshipList"></div>
+        </article>
+        <article class="championship-panel">
+          <div class="championship-heading">
+            <div>
+              <h2 class="championship-title">車隊積分榜</h2>
+              <p class="championship-subtitle" id="teamChampionshipSubtitle">本季車隊錦標賽排名</p>
+            </div>
+            <span class="championship-code">TEAM TELEMETRY</span>
+          </div>
+          <div class="championship-status" id="teamChampionshipStatus" role="status">等待賽季資料…</div>
+          <div class="championship-actions">
+            <button class="favorite-filter" id="teamFavoritesToggle" type="button" aria-pressed="false">只看收藏 · 0</button>
+          </div>
+          <div class="championship-list" id="teamChampionshipList"></div>
         </article>
       </section>
 
@@ -976,39 +1530,54 @@
             <select class="select-input" id="detailDriverSelect" aria-label="選擇車手"><option value="">全部車手</option></select>
           </label>
         </div>
+        <button class="back-button replay-toggle" id="replayToggle" type="button" aria-expanded="false" aria-controls="raceReplaySection">
+          ▶ 載入多人賽道回放
+        </button>
         <div class="status" id="detailStatus" role="status" aria-live="polite">等待選取賽事。</div>
-        <div class="detail-grid">
-          <article class="panel wide replay-panel">
+        <section id="raceReplaySection" hidden aria-label="多人賽道回放">
+          <div class="panel replay-panel">
             <div class="panel-header">
               <div>
                 <h3 class="panel-title">賽道歷史回放</h3>
-                <p class="panel-subtitle">依 OpenF1 車手 GPS 軌跡重播；切換車手即可查看不同賽車。</p>
+                <p class="panel-subtitle">全車手依 OpenF1 GPS 軌跡同步重播；紅燈熄滅後起跑，車隊顏色標示各車。</p>
               </div>
-              <span class="replay-label" id="replayStatus">等待 GPS 資料</span>
+              <span class="replay-label" id="replayStatus">尚未載入 GPS</span>
             </div>
-            <div class="replay-stage">
-              <svg id="replayTrack" viewBox="0 0 1000 560" role="img" aria-label="車手歷史賽道位置回放">
-                <polyline class="replay-track-base" id="replayTrackBase"></polyline>
-                <polyline class="replay-track-line" id="replayTrackLine"></polyline>
-                <polyline class="replay-track-center" id="replayTrackCenter"></polyline>
-                <text class="replay-corner" id="replayStartLabel" x="24" y="34">START</text>
-                <g class="replay-marker" id="replayMarker" transform="translate(0 0)" hidden>
-                  <circle r="18"></circle>
-                  <path d="M-8 5V-5l8-6 8 6V5L0 10z"></path>
-                  <text id="replayDriverNumber" y="34"></text>
-                </g>
-              </svg>
-              <div class="replay-empty" id="replayEmpty" role="status">選取分站與車手後，載入可用的歷史 GPS 軌跡。</div>
+            <div class="replay-race-layout">
+              <div class="replay-stage">
+                <svg id="replayTrack" viewBox="0 0 1000 560" role="img" aria-label="全車手歷史賽道位置回放">
+                  <polyline class="replay-track-base" id="replayTrackBase"></polyline>
+                  <polyline class="replay-track-line" id="replayTrackLine"></polyline>
+                  <polyline class="replay-track-center" id="replayTrackCenter"></polyline>
+                  <text class="replay-corner" id="replayStartLabel" x="24" y="34">START</text>
+                  <g id="replayMarkers"></g>
+                </svg>
+                <div class="replay-start-lights" id="replayStartLights" hidden aria-label="起跑燈倒數">
+                  <span class="replay-start-lights-label" id="replayStartLightsLabel">LIGHTS OUT</span>
+                  <span class="replay-start-lights-bulbs" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span>
+                  </span>
+                </div>
+                <div class="replay-empty" id="replayEmpty" role="status">按「載入多人賽道回放」後才會向資料來源請求 GPS 軌跡。</div>
+              </div>
+              <aside class="replay-leaderboard" aria-label="即時回放車手名次">
+                <div class="replay-leaderboard-header"><span>車手 DRIVERS</span><b id="replayLeaderboardStatus">等待回放</b></div>
+                <div class="replay-driver-list" id="replayDriverList">
+                  <div class="replay-leaderboard-empty">載入回放後顯示車手名次、車號與車隊。</div>
+                </div>
+              </aside>
             </div>
             <div class="replay-controls">
-              <button class="replay-button" id="replayPlay" type="button" disabled>▶ 播放</button>
+              <button class="replay-button" id="replayPlay" type="button" disabled>▶ 起跑</button>
               <select class="select-input replay-speed" id="replaySpeed" aria-label="回放速度">
                 <option value="30">30×</option><option value="60" selected>60×</option><option value="120">120×</option>
               </select>
               <input class="replay-range" id="replayProgress" type="range" min="0" max="1000" value="0" aria-label="回放進度" disabled>
               <span class="replay-time" id="replayTime">—</span>
             </div>
-          </article>
+          </div>
+        </section>
+        <div class="detail-grid">
           <article class="panel wide">
             <div class="panel-header"><div><h3 class="panel-title">賽事名次</h3><p class="panel-subtitle">各車手在所選賽段的最新位置。</p></div><span class="panel-code">CLASSIFICATION</span></div>
             <div class="data-table-wrap" id="resultsTable"></div>
@@ -1047,6 +1616,36 @@
           </article>
         </div>
       </section>
+      <section class="detail-page profile-page" id="profileDetailPage" hidden aria-live="polite">
+        <button class="back-button" id="backToChampionships" type="button">← 返回年度積分榜</button>
+        <header class="profile-hero" id="profileHero">
+          <div class="profile-mark" id="profileMark">F1</div>
+          <div>
+            <div class="profile-kicker" id="profileKicker">SEASON PROFILE</div>
+            <h2 class="profile-title" id="profileTitle">車手與車隊資料</h2>
+            <div class="profile-subtitle" id="profileSubtitle">載入賽季資料中…</div>
+            <button class="profile-favorite" id="profileFavoriteToggle" type="button" aria-pressed="false" hidden>☆ 加入收藏</button>
+          </div>
+          <div class="profile-number" id="profileNumber">—</div>
+        </header>
+        <div class="profile-metrics" id="profileMetrics"></div>
+        <div class="profile-grid">
+          <article class="panel">
+            <div class="panel-header">
+              <div><h3 class="panel-title" id="profilePrimaryTitle">賽季表現</h3><p class="panel-subtitle" id="profilePrimarySubtitle">本賽季錦標賽資料</p></div>
+              <span class="panel-code" id="profilePrimaryCode">SEASON</span>
+            </div>
+            <div class="profile-list" id="profilePrimaryList"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-header">
+              <div><h3 class="panel-title" id="profileSecondaryTitle">相關資訊</h3><p class="panel-subtitle" id="profileSecondarySubtitle">車手與車隊</p></div>
+              <span class="panel-code" id="profileSecondaryCode">PROFILE</span>
+            </div>
+            <div class="profile-list" id="profileSecondaryList"></div>
+          </article>
+        </div>
+      </section>
       <div class="footnote">APEX F1 RACE CONTROL　・　賽程與歷史資料由 <a href="https://openf1.org/" target="_blank" rel="noopener noreferrer">OpenF1</a> 提供</div>
     </main>
   </div>
@@ -1054,16 +1653,22 @@
 
   <script>
     const API_BASE = "https://api.openf1.org/v1";
+    const API_PROXY_BASE = "";
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
     const state = {
-      meetings: [], sessions: [], drivers: [], positions: [], selectedMeeting: null,
-      selectedSessions: [], selectedData: {}, filter: "all"
+      meetings: [], sessions: [], weekendSessions: [], drivers: [], positions: [], selectedMeeting: null,
+      selectedSessions: [], selectedData: {}, driverStandings: [], teamStandings: [],
+      championshipSession: null, profileDataReady: false, profileDataError: "", scheduleLoaded: false,
+      favorites: { drivers: [], teams: [] }, favoritesOnly: { drivers: false, teams: false },
+      filter: "all"
     };
     let toastTimer;
     let refreshTimer;
     let countdownTimer;
     let requestController;
+    let weatherController;
+    let weatherLoadingSessionKey = "";
     let lastRequestAt = 0;
     let requestQueue = Promise.resolve();
     let detailController;
@@ -1071,17 +1676,24 @@
     let replayController;
     let replayFrame = 0;
     let replayLastFrame = 0;
-    let replayRecords = [];
-    let replayTimes = [];
     let replayStartTime = 0;
     let replayEndTime = 0;
     let replayCurrentTime = 0;
     let replayLastDisplayedSecond = -1;
     let replayPlaying = false;
     let replayGeometry = null;
+    let replayCars = [];
+    let replayStarting = false;
+    let replayStartTimers = [];
+    let replayLoadedSessionKey = "";
+    let replayLoadingSessionKey = "";
+    let replayPositionRecords = [];
+    let replayLastLeaderboardSecond = -1;
     const responseCache = new Map();
-    const CACHE_TTL = 5 * 60 * 1000;
+    const API_CACHE_PREFIX = "apex-f1-api:";
+    const MAX_PERSISTED_CACHE_ENTRIES = 40;
     let requestBlockedUntil = 0;
+    let profileFavorite = null;
 
     function showToast(message) {
       const toast = $("#toast");
@@ -1099,11 +1711,158 @@
       $("#connectionDot").classList.toggle("offline", kind === "error");
     }
 
+    function getApiCacheTtl(url) {
+      const endpoint = new URL(url).pathname.split("/").pop();
+      if (endpoint === "sessions" || endpoint === "meetings") return 12 * 60 * 60 * 1000;
+      if (endpoint === "drivers") return 6 * 60 * 60 * 1000;
+      if (endpoint.startsWith("championship_") || endpoint === "position") return 30 * 60 * 1000;
+      return 60 * 60 * 1000;
+    }
+
+    function getProxiedUrl(url, route) {
+      if (!API_PROXY_BASE) return url;
+      const source = new URL(url);
+      return `${API_PROXY_BASE.replace(/\/+$/, "")}/${route}${source.search}`;
+    }
+
+    function readApiCache(url) {
+      const ttl = getApiCacheTtl(url);
+      const memoryEntry = responseCache.get(url);
+      if (memoryEntry && Date.now() - memoryEntry.time < ttl) return memoryEntry.data;
+      if (memoryEntry) responseCache.delete(url);
+      try {
+        const storageKey = `${API_CACHE_PREFIX}${url}`;
+        const stored = localStorage.getItem(storageKey);
+        if (!stored) return null;
+        const entry = JSON.parse(stored);
+        if (!Number.isFinite(entry.time) || Date.now() - entry.time >= ttl || !Array.isArray(entry.data)) {
+          localStorage.removeItem(storageKey);
+          return null;
+        }
+        responseCache.set(url, entry);
+        return entry.data;
+      } catch (error) {
+        console.warn("無法讀取已暫存的 OpenF1 資料。", error);
+        return null;
+      }
+    }
+
+    function storeApiCache(url, data) {
+      const entry = { data, time: Date.now() };
+      responseCache.set(url, entry);
+      if (responseCache.size > MAX_PERSISTED_CACHE_ENTRIES) {
+        responseCache.delete(responseCache.keys().next().value);
+      }
+      try {
+        const storageKey = `${API_CACHE_PREFIX}${url}`;
+        const serialized = JSON.stringify(entry);
+        if (serialized.length > 180000) return;
+        localStorage.setItem(storageKey, serialized);
+        const keys = [];
+        for (let index = 0; index < localStorage.length; index += 1) {
+          const key = localStorage.key(index);
+          if (key?.startsWith(API_CACHE_PREFIX)) {
+            const cached = JSON.parse(localStorage.getItem(key));
+            keys.push({ key, time: Number(cached.time) || 0 });
+          }
+        }
+        keys.sort((a, b) => a.time - b.time);
+        while (keys.length > MAX_PERSISTED_CACHE_ENTRIES) {
+          localStorage.removeItem(keys.shift().key);
+        }
+      } catch (error) {
+        console.warn("無法儲存 OpenF1 快取，後續重新開啟頁面時可能再次請求資料。", error);
+      }
+    }
+
+    function clearApiCache() {
+      responseCache.clear();
+      try {
+        const keys = [];
+        for (let index = 0; index < localStorage.length; index += 1) {
+          const key = localStorage.key(index);
+          if (key?.startsWith(API_CACHE_PREFIX)) keys.push(key);
+        }
+        keys.forEach((key) => localStorage.removeItem(key));
+      } catch (error) {
+        console.warn("無法清除已儲存的 OpenF1 快取。", error);
+      }
+    }
+
+    function isFavorite(kind, identifier) {
+      const value = String(identifier || "");
+      return state.favorites[kind].some((saved) =>
+        kind === "teams" ? saved.toLowerCase() === value.toLowerCase() : saved === value
+      );
+    }
+
+    function updateFavoriteFilterButton(kind) {
+      const button = $(`#${kind === "drivers" ? "driver" : "team"}FavoritesToggle`);
+      button.textContent = `只看收藏 · ${state.favorites[kind].length}`;
+      button.setAttribute("aria-pressed", String(state.favoritesOnly[kind]));
+    }
+
+    function renderCurrentChampionship(kind) {
+      const drivers = kind === "drivers";
+      renderChampionshipList(
+        drivers ? "driverChampionshipList" : "teamChampionshipList",
+        drivers ? state.driverStandings : state.teamStandings,
+        state.drivers,
+        kind
+      );
+    }
+
+    function toggleFavorite(kind, identifier) {
+      const value = String(identifier || "");
+      if (!value) return;
+      const exists = isFavorite(kind, value);
+      state.favorites[kind] = exists
+        ? state.favorites[kind].filter((saved) =>
+          kind === "teams" ? saved.toLowerCase() !== value.toLowerCase() : saved !== value
+        )
+        : [...state.favorites[kind], value];
+      try {
+        localStorage.setItem("apex-f1-favorites", JSON.stringify(state.favorites));
+      } catch (error) {
+        console.warn("無法儲存車手與車隊收藏。", error);
+        showToast("收藏已暫時保留在本頁，但無法儲存至此瀏覽器。");
+      }
+      updateFavoriteFilterButton(kind);
+      renderCurrentChampionship(kind);
+      updateProfileFavoriteButton();
+    }
+
+    function updateProfileFavoriteButton() {
+      const button = $("#profileFavoriteToggle");
+      if (!profileFavorite) {
+        button.hidden = true;
+        return;
+      }
+      const selected = isFavorite(profileFavorite.kind, profileFavorite.identifier);
+      button.hidden = false;
+      button.textContent = selected ? "★ 已加入收藏" : "☆ 加入收藏";
+      button.setAttribute("aria-pressed", String(selected));
+    }
+
+    function loadFavorites() {
+      try {
+        const stored = JSON.parse(localStorage.getItem("apex-f1-favorites") || "{}");
+        state.favorites = {
+          drivers: Array.isArray(stored.drivers) ? stored.drivers.map(String) : [],
+          teams: Array.isArray(stored.teams) ? stored.teams.map(String) : []
+        };
+      } catch (error) {
+        console.warn("無法讀取車手與車隊收藏，將使用空收藏清單。", error);
+        state.favorites = { drivers: [], teams: [] };
+      }
+      updateFavoriteFilterButton("drivers");
+      updateFavoriteFilterButton("teams");
+    }
+
     async function fetchJson(url, signal) {
       if (signal?.aborted) throw new DOMException("Request was aborted.", "AbortError");
-      const cached = responseCache.get(url);
-      if (cached && Date.now() - cached.time < CACHE_TTL) return cached.data;
-      if (cached) responseCache.delete(url);
+      const cachedData = readApiCache(url);
+      if (cachedData) return cachedData;
       const task = requestQueue.then(async () => {
         if (signal?.aborted) throw new DOMException("Request was aborted.", "AbortError");
         if (Date.now() < requestBlockedUntil) {
@@ -1113,17 +1872,22 @@
         if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
         if (signal?.aborted) throw new DOMException("Request was aborted.", "AbortError");
         lastRequestAt = Date.now();
-        const response = await fetch(url, { headers: { Accept: "application/json" }, signal });
+        const response = await fetch(getProxiedUrl(url, "v1"), { headers: { Accept: "application/json" }, signal });
         if (response.status === 429) {
-          const retryAfter = Number(response.headers.get("Retry-After"));
-          requestBlockedUntil = Date.now() + (Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 60000);
-          throw new Error("OpenF1 免費請求額度已用完，請約 60 秒後再重新整理。");
+          const retryAfter = response.headers.get("Retry-After");
+          const retrySeconds = Number(retryAfter);
+          const retryDate = retryAfter && !Number.isFinite(retrySeconds) ? new Date(retryAfter).getTime() : NaN;
+          const delay = Number.isFinite(retrySeconds) && retrySeconds > 0
+            ? retrySeconds * 1000
+            : Number.isFinite(retryDate) ? Math.max(1000, retryDate - Date.now()) : 60000;
+          requestBlockedUntil = Date.now() + delay;
+          const minutes = Math.max(1, Math.ceil(delay / 60000));
+          throw new Error(`OpenF1 請求受到限制，已暫停請求，約 ${minutes} 分鐘後可再試。`);
         }
         if (!response.ok) throw new Error(`資料服務回應 HTTP ${response.status}。請稍後重試。`);
         const data = await response.json();
         if (!Array.isArray(data)) throw new Error("資料服務回傳格式不符預期。");
-        responseCache.set(url, { data, time: Date.now() });
-        if (responseCache.size > 180) responseCache.delete(responseCache.keys().next().value);
+        storeApiCache(url, data);
         return data;
       });
       requestQueue = task.catch(() => {});
@@ -1205,6 +1969,60 @@
       return circuitTranslations[name.toLowerCase()] || name || "賽道待定";
     }
 
+    const driverNameTranslations = {
+      ALB: "阿爾本", ALO: "阿隆索", ANT: "安東內利", BEA: "貝爾曼", BOR: "博托萊托",
+      BOT: "波塔斯", COL: "科拉平托", GAS: "加斯利", HAD: "哈賈爾", HAM: "漢米爾頓",
+      HUL: "霍肯伯格", LAW: "勞森", LEC: "勒克萊爾", LIN: "林德布拉德", NOR: "諾里斯",
+      OCO: "奧康", PER: "佩雷斯", PIA: "皮亞斯特里", RIC: "里卡多", RUS: "羅素",
+      SAI: "賽恩斯", SAR: "薩金特", STR: "斯特羅爾", VER: "維斯塔潘", ZHO: "周冠宇",
+      MAG: "馬格努森", TSU: "角田裕毅", DEV: "德弗里斯", MSC: "米克・舒馬赫",
+      VET: "維特爾", RAI: "萊科寧", GRO: "格羅斯讓", KVY: "克維亞特"
+    };
+    const teamNameTranslations = {
+      "alpine": "阿爾派", "aston martin": "亞斯頓・馬丁", "audi": "奧迪",
+      "cadillac": "凱迪拉克", "ferrari": "法拉利", "haas f1 team": "哈斯",
+      "kick sauber": "索伯", "mclaren": "麥拉倫", "mercedes": "賓士",
+      "racing bulls": "RB 車隊", "red bull racing": "紅牛", "stake f1 team kick sauber": "索伯",
+      "visa cash app rb": "RB 車隊", "williams": "威廉斯"
+    };
+
+    function driverDisplayName(driver) {
+      const acronym = String(driver?.name_acronym || "").toUpperCase();
+      return driverNameTranslations[acronym] || driver?.full_name || driver?.broadcast_name || "未知車手";
+    }
+
+    function driverShortCode(driver) {
+      const acronym = String(driver?.name_acronym || "").trim();
+      return /^[a-z0-9]{2,4}$/i.test(acronym) ? acronym.toUpperCase() : "";
+    }
+
+    function teamDisplayName(teamName) {
+      const name = String(teamName || "");
+      return teamNameTranslations[name.toLowerCase()] || name || "車隊資料未提供";
+    }
+
+    function driverTeamColor(driver) {
+      const color = String(driver?.team_colour || "").replace(/^#/, "");
+      return /^[0-9a-f]{6}$/i.test(color) ? `#${color}` : "#92989c";
+    }
+
+    function driverProfileHref(driver) {
+      return `#driver/${getYear()}/${encodeURIComponent(driver.driver_number)}`;
+    }
+
+    function teamProfileHref(teamName) {
+      return `#team/${getYear()}/${encodeURIComponent(teamName || "")}`;
+    }
+
+    function createProfileLink(label, href, color) {
+      const link = document.createElement("a");
+      link.className = "profile-link";
+      link.href = href;
+      link.textContent = label;
+      if (color) link.style.setProperty("--team-color", color);
+      return link;
+    }
+
     function createRaceName(session) {
       const meeting = state.meetings.find((item) => item.meeting_key === session.meeting_key);
       const name = meeting?.meeting_name && meeting.meeting_name !== "Pre-Season Testing"
@@ -1213,44 +2031,233 @@
       return translateRaceName(name, meeting?.country_name || session.country_name);
     }
 
+    const circuitCoordinates = [
+      ["melbourne", -37.8497, 144.968], ["albert park", -37.8497, 144.968],
+      ["shanghai", 31.3389, 121.2197], ["suzuka", 34.8431, 136.541],
+      ["miami", 25.9581, -80.2389], ["montreal", 45.5000, -73.5228],
+      ["monaco", 43.7347, 7.4206], ["monte carlo", 43.7347, 7.4206],
+      ["catalunya", 41.5700, 2.2611], ["barcelona", 41.5700, 2.2611],
+      ["spielberg", 47.2197, 14.7647], ["red bull ring", 47.2197, 14.7647],
+      ["silverstone", 52.0786, -1.0169], ["spa", 50.4372, 5.9714],
+      ["francorchamps", 50.4372, 5.9714], ["hungaroring", 47.5789, 19.2486],
+      ["zandvoort", 52.3888, 4.5409], ["monza", 45.6156, 9.2811],
+      ["baku", 40.3725, 49.8533], ["singapore", 1.2914, 103.864],
+      ["austin", 30.1328, -97.6411], ["americas", 30.1328, -97.6411],
+      ["mexico", 19.4042, -99.0907], ["interlagos", -23.7014, -46.6969],
+      ["sao paulo", -23.7014, -46.6969], ["las vegas", 36.1147, -115.173],
+      ["lusail", 25.49, 51.4542], ["yas marina", 24.4672, 54.6031],
+      ["sakhir", 26.0325, 50.5106], ["bahrain", 26.0325, 50.5106],
+      ["jeddah", 21.6319, 39.1044], ["madring", 40.4637, -3.7492]
+    ];
+    const weatherForecastCache = new Map();
+
+    function circuitLocation(session) {
+      const circuit = String(session.circuit_short_name || session.location || "").toLowerCase();
+      return circuitCoordinates.find(([name]) => circuit.includes(name)) || null;
+    }
+
+    function weatherDescription(code) {
+      if (code === 0) return "晴朗";
+      if ([1, 2].includes(code)) return "晴時多雲";
+      if (code === 3) return "陰天";
+      if ([45, 48].includes(code)) return "有霧";
+      if ([51, 53, 55, 56, 57].includes(code)) return "毛毛雨";
+      if ([61, 63, 65, 66, 67].includes(code)) return "下雨";
+      if ([71, 73, 75, 77].includes(code)) return "降雪";
+      if ([80, 81, 82].includes(code)) return "陣雨";
+      if ([85, 86].includes(code)) return "陣雪";
+      if ([95, 96, 99].includes(code)) return "雷雨";
+      return "天氣狀況未提供";
+    }
+
+    async function loadWeatherForecast(session) {
+      const sessionKey = session ? `${session.session_key}:${session.date_start}` : "";
+      if (sessionKey && weatherLoadingSessionKey === sessionKey) return;
+      if (weatherController) weatherController.abort();
+      weatherLoadingSessionKey = "";
+      if (!session) {
+        $("#weatherForecastValue").textContent = "沒有下一個賽段";
+        $("#weatherForecastNote").textContent = "目前沒有可查詢的賽段天氣預報。";
+        return;
+      }
+      const location = circuitLocation(session);
+      if (!location) {
+        $("#weatherForecastValue").textContent = "賽道位置未提供";
+        $("#weatherForecastNote").textContent = `找不到「${session.circuit_short_name || session.location || "此賽道"}」的座標，無法查詢天氣。`;
+        return;
+      }
+      const cached = weatherForecastCache.get(sessionKey);
+      if (cached && Date.now() - cached.time < 30 * 60 * 1000) {
+        $("#weatherForecastValue").textContent = cached.value;
+        $("#weatherForecastNote").textContent = cached.note;
+        return;
+      }
+      $("#weatherForecastValue").textContent = "正在查詢預報…";
+      $("#weatherForecastNote").textContent = `${session.circuit_short_name || session.location} · Open-Meteo 天氣預報`;
+      weatherController = new AbortController();
+      weatherLoadingSessionKey = sessionKey;
+      const { signal } = weatherController;
+      const [name, latitude, longitude] = location;
+      const query = new URLSearchParams({
+        latitude: String(latitude),
+        longitude: String(longitude),
+        hourly: "temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m",
+        forecast_days: "16",
+        timezone: "auto",
+        temperature_unit: "celsius",
+        wind_speed_unit: "kmh"
+      });
+      try {
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?${query}`;
+        const response = await fetch(getProxiedUrl(weatherUrl, "weather"), { signal });
+        if (!response.ok) throw new Error(`天氣服務回應 HTTP ${response.status}。`);
+        const forecast = await response.json();
+        const times = forecast.hourly?.time || [];
+        const target = new Date(session.date_start);
+        const timezone = forecast.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const targetLocal = new Intl.DateTimeFormat("sv-SE", {
+          timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+        }).format(target);
+        const targetTimestamp = Date.parse(targetLocal.replace(" ", "T"));
+        let selectedIndex = -1;
+        let closestDifference = Infinity;
+        times.forEach((time, index) => {
+          const difference = Math.abs(Date.parse(time) - targetTimestamp);
+          if (difference < closestDifference) {
+            selectedIndex = index;
+            closestDifference = difference;
+          }
+        });
+        if (selectedIndex < 0 || closestDifference > 60 * 60 * 1000) {
+          const value = "預報尚未發布";
+          const note = `目前沒有 ${name} 該時段的天氣預報；免費預報範圍約 16 天。`;
+          weatherForecastCache.set(sessionKey, { value, note, time: Date.now() });
+          $("#weatherForecastValue").textContent = value;
+          $("#weatherForecastNote").textContent = note;
+          return;
+        }
+        const hourly = forecast.hourly;
+        const temperature = hourly.temperature_2m?.[selectedIndex];
+        const chance = hourly.precipitation_probability?.[selectedIndex];
+        const rainfall = hourly.precipitation?.[selectedIndex];
+        const code = hourly.weather_code?.[selectedIndex];
+        const wind = hourly.wind_speed_10m?.[selectedIndex];
+        const value = `${weatherDescription(code)} · ${Number.isFinite(temperature) ? `${Math.round(temperature)}°C` : "溫度未提供"} · 降雨機率 ${Number.isFinite(chance) ? `${chance}%` : "未提供"}`;
+        const note = `${translateCircuitName(name)} · ${formatDate(session.date_start)} · ${Number(rainfall) > 0 ? `預測降雨 ${rainfall} mm` : "預測無降雨"} · ${Number.isFinite(wind) ? `風速 ${Math.round(wind)} km/h` : "風速未提供"}（預報會隨時間更新）`;
+        weatherForecastCache.set(sessionKey, { value, note, time: Date.now() });
+        $("#weatherForecastValue").textContent = value;
+        $("#weatherForecastNote").textContent = note;
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        const value = "天氣預報暫時無法取得";
+        weatherForecastCache.set(sessionKey, { value, note: error.message, time: Date.now() });
+        $("#weatherForecastValue").textContent = value;
+        $("#weatherForecastNote").textContent = error.message;
+      } finally {
+        if (weatherLoadingSessionKey === sessionKey) weatherLoadingSessionKey = "";
+      }
+    }
+
+    function renderWeekendTimeline() {
+      const timeline = $("#weekendTimeline");
+      timeline.replaceChildren();
+      const now = Date.now();
+      const schedule = state.weekendSessions.length ? state.weekendSessions : state.sessions;
+      const next = schedule.find((session) => new Date(session.date_start).getTime() > now);
+      const active = schedule.find((session) =>
+        new Date(session.date_start).getTime() <= now && new Date(session.date_end).getTime() >= now
+      );
+      const focus = next || active;
+      if (!focus) {
+        const message = document.createElement("div");
+        message.className = "empty-state";
+        message.textContent = state.scheduleLoaded ? "目前沒有下一分站賽段資料。" : "賽週末時間軸會在賽程載入後顯示。";
+        timeline.append(message);
+        $("#weekendTimelineSubtitle").textContent = state.scheduleLoaded ? "本賽季賽程已結束" : "等待賽程資料";
+        return;
+      }
+      const sessions = schedule.filter((session) => Number(session.meeting_key) === Number(focus.meeting_key));
+      $("#weekendTimelineSubtitle").textContent = `${createRaceName(focus)} · ${sessions.length} 個賽段 · 時間依你的時區顯示`;
+      sessions.forEach((session) => {
+        const start = new Date(session.date_start).getTime();
+        const end = new Date(session.date_end).getTime();
+        const isActive = start <= now && end >= now;
+        const isNext = !active && session.session_key === next?.session_key;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `weekend-session${isActive ? " active" : isNext ? " next" : ""}`;
+        const date = document.createElement("span");
+        date.className = "weekend-session-date";
+        date.textContent = formatDate(session.date_start, { year: undefined, month: "short" });
+        const name = document.createElement("span");
+        name.className = "weekend-session-name";
+        name.textContent = translateSessionName(session.session_name || session.session_type);
+        const status = document.createElement("span");
+        status.className = "weekend-session-state";
+        status.textContent = isActive ? "進行中" : end < now ? "已結束" : isNext ? "下一賽段" : "即將開始";
+        button.setAttribute("aria-label", `${createRaceName(session)} ${name.textContent} ${formatDate(session.date_start)} ${status.textContent}`);
+        button.append(date, name, status);
+        button.addEventListener("click", () => {
+          const race = state.sessions.find((item) => Number(item.meeting_key) === Number(session.meeting_key));
+          openRacePage(race || session, String(session.session_key));
+        });
+        timeline.append(button);
+      });
+    }
+
     function renderStats() {
       const now = Date.now();
       const completed = state.sessions.filter((session) => new Date(session.date_end).getTime() < now);
-      const next = state.sessions.find((session) => new Date(session.date_start).getTime() > now);
+      const raceSessions = state.sessions.length ? state.sessions : state.weekendSessions.filter((session) => session.session_name === "Race");
+      const next = raceSessions.find((session) => new Date(session.date_start).getTime() > now);
       const inProgress = state.sessions.find((session) =>
         new Date(session.date_start).getTime() <= now && new Date(session.date_end).getTime() >= now
       );
-      const featured = next || inProgress;
-      $("#raceCount").textContent = String(state.sessions.length);
+      const featuredRace = next || inProgress;
+      setAnimatedStat("#raceCount", state.sessions.length);
       $("#raceCountFoot").textContent = `${getYear()} 賽季正賽分站`;
-      $("#completedCount").textContent = String(completed.length);
-      $("#nextRaceValue").textContent = featured ? createRaceName(featured) : "賽季結束";
-      $("#nextRaceFoot").textContent = featured
-        ? `${inProgress === featured ? "正在進行" : "正賽"} ・ ${formatDate(featured.date_start, { hour: undefined, minute: undefined })}`
+      setAnimatedStat("#completedCount", completed.length);
+      $("#nextRaceValue").textContent = featuredRace ? createRaceName(featuredRace) : "賽季結束";
+      $("#nextRaceFoot").textContent = featuredRace
+        ? `${inProgress === featuredRace ? "正在進行" : "正賽"} ・ ${formatDate(featuredRace.date_start, { hour: undefined, minute: undefined })}`
         : "目前沒有後續分站資料";
       $("#updatedValue").textContent = new Intl.DateTimeFormat("zh-Hant", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date());
       $("#sidebarYear").textContent = `${getYear()} 賽季`;
-      $("#heroTitle").textContent = featured ? createRaceName(featured) : `${getYear()} 賽季賽事已結束`;
-      $("#heroSubtitle").textContent = featured
-        ? `${translateCircuitName(featured.circuit_short_name || featured.location)} ・ ${translateCountryName(featured.country_name)} ・ 正賽時間 ${formatDate(featured.date_start)}`
-        : "目前沒有可用的後續正賽賽程資料。";
-      $("#heroOverline").textContent = inProgress && !next ? "RACE IN PROGRESS / 正賽進行中" : "NEXT GRAND PRIX / 下一場正賽";
-      $("#heroStatLabel").textContent = inProgress && !next ? "本站結束倒數" : "距離下一場正賽";
-      $("#heroStatValue").textContent = featured ? String(featured.session_key) : "—";
-      $("#heroStatFoot").textContent = featured
-        ? `${inProgress && !next ? "預計結束" : "開賽時間"} ・ ${formatDate(inProgress && !next ? featured.date_end : featured.date_start)}`
-        : "賽程公布後會在此顯示倒數";
       updateCountdown();
+      renderWeekendTimeline();
     }
 
     function updateCountdown() {
       const now = Date.now();
-      const next = state.sessions.find((session) => new Date(session.date_start).getTime() > now);
-      const inProgress = state.sessions.find((session) =>
+      const schedule = state.weekendSessions.length ? state.weekendSessions : state.sessions;
+      const next = schedule.find((session) => new Date(session.date_start).getTime() > now);
+      const active = schedule.find((session) =>
         new Date(session.date_start).getTime() <= now && new Date(session.date_end).getTime() >= now
       );
+      const upcoming = next || active;
+      const isActiveTarget = !next && Boolean(active);
       const target = next ? new Date(next.date_start).getTime()
-        : inProgress ? new Date(inProgress.date_end).getTime() : null;
+        : active ? new Date(active.date_end).getTime() : null;
+      $("#heroTitle").textContent = upcoming
+        ? createRaceName(upcoming)
+        : state.scheduleLoaded ? `${getYear()} 賽季賽事已結束` : "賽程暫時無法載入";
+      $("#heroSubtitle").textContent = upcoming
+        ? `${translateCircuitName(upcoming.circuit_short_name || upcoming.location)} ・ ${translateCountryName(upcoming.country_name)} ・ ${isActiveTarget ? "目前賽段" : "下一賽段"}：${translateSessionName(upcoming.session_name || upcoming.session_type)} ・ ${formatDate(upcoming.date_start)}`
+        : state.scheduleLoaded ? "目前沒有可用的後續賽段資料。" : "OpenF1 賽程暫時無法取得，請稍後再試。";
+      $("#heroOverline").textContent = isActiveTarget ? "SESSION IN PROGRESS / 賽段進行中" : "NEXT SESSION / 下一個賽段";
+      $("#heroStatLabel").textContent = isActiveTarget ? "距離本賽段結束" : "距離下一賽段開始";
+      $("#heroStatValue").textContent = upcoming ? String(upcoming.session_key) : "—";
+      $("#heroStatFoot").textContent = upcoming
+        ? `${isActiveTarget ? "預計結束" : "開始時間"} ・ ${formatDate(isActiveTarget ? upcoming.date_end : upcoming.date_start)}`
+        : state.scheduleLoaded ? "本賽季賽程已結束" : "賽程載入後會在此顯示倒數";
+      $("#nextSessionButton").disabled = !upcoming;
+      if (upcoming && !weatherForecastCache.has(`${upcoming.session_key}:${upcoming.date_start}`) &&
+        weatherLoadingSessionKey !== `${upcoming.session_key}:${upcoming.date_start}`) {
+        loadWeatherForecast(upcoming);
+      } else if (!upcoming) {
+        loadWeatherForecast(null);
+      }
       const values = ["countdownDays", "countdownHours", "countdownMinutes", "countdownSeconds"];
       if (!Number.isFinite(target)) {
         values.forEach((id) => { $(`#${id}`).textContent = "—"; });
@@ -1268,14 +2275,56 @@
         const value = String(units[index]).padStart(2, "0");
         if (digit.textContent === value) return;
         digit.textContent = value;
-        digit.classList.remove("digit-tick");
-        requestAnimationFrame(() => digit.classList.add("digit-tick"));
+        if (window.gsap && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          gsap.fromTo(digit, { autoAlpha: 0.45, y: -5 }, {
+            autoAlpha: 1, y: 0, duration: 0.32, ease: "power2.out", overwrite: true
+          });
+        } else {
+          digit.classList.remove("digit-tick");
+          requestAnimationFrame(() => digit.classList.add("digit-tick"));
+        }
       });
+    }
+
+    function addShowMore(list, visibleCount, itemLabel) {
+      const existingButton = list.nextElementSibling;
+      if (existingButton?.classList.contains("show-more-button")) existingButton.remove();
+
+      const items = [...list.children].filter((item) =>
+        !item.classList.contains("empty-state") && !item.classList.contains("championship-empty") &&
+        !item.classList.contains("profile-empty") && !item.classList.contains("replay-leaderboard-empty")
+      );
+      if (items.length <= visibleCount) {
+        items.forEach((item) => {
+          item.hidden = false;
+          item.classList.remove("show-more-item");
+        });
+        return;
+      }
+
+      const hiddenItems = items.slice(visibleCount);
+      hiddenItems.forEach((item) => {
+        item.classList.add("show-more-item");
+        item.hidden = true;
+      });
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "show-more-button";
+      button.setAttribute("aria-expanded", "false");
+      button.textContent = `查看更多（還有 ${hiddenItems.length} ${itemLabel}）`;
+      button.addEventListener("click", () => {
+        const expanded = button.getAttribute("aria-expanded") !== "true";
+        hiddenItems.forEach((item) => { item.hidden = !expanded; });
+        button.setAttribute("aria-expanded", String(expanded));
+        button.textContent = expanded ? "收合" : `查看更多（還有 ${hiddenItems.length} ${itemLabel}）`;
+      });
+      list.after(button);
     }
 
     function renderRaces() {
       const list = $("#raceList");
       list.replaceChildren();
+      addShowMore(list, 5, "個分站");
       const now = Date.now();
       const filtered = state.sessions.filter((session) => {
         const completed = new Date(session.date_end).getTime() < now;
@@ -1301,11 +2350,14 @@
       }
       if (!state.sessions.length) {
         list.innerHTML = '<div class="empty-state">此賽季目前沒有可用的正賽賽程資料。</div>';
+        addShowMore(list, 5, "個分站");
         return;
       }
       filtered.forEach((session) => {
         const round = state.sessions.indexOf(session) + 1;
         const completed = new Date(session.date_end).getTime() < now;
+        const event = document.createElement("div");
+        event.className = "race-event";
         const row = document.createElement("button");
         row.type = "button";
         row.className = `race-row${completed ? " completed" : ""}${state.selectedMeeting?.meeting_key === session.meeting_key ? " selected" : ""}`;
@@ -1331,13 +2383,35 @@
         badge.textContent = completed ? "已完成" : new Date(session.date_start).getTime() <= now ? "進行中" : "未舉行";
         row.append(bar, details, date, badge);
         row.addEventListener("click", () => openRacePage(session));
-        list.append(row);
+        event.append(row);
+        const otherSessions = state.weekendSessions.filter((item) =>
+          Number(item.meeting_key) === Number(session.meeting_key) &&
+          item.session_name !== "Race" && !item.is_cancelled
+        );
+        if (otherSessions.length) {
+          const sessionList = document.createElement("div");
+          sessionList.className = "race-session-list";
+          sessionList.setAttribute("aria-label", `${createRaceName(session)}其他賽段`);
+          otherSessions.forEach((item) => {
+            const sessionButton = document.createElement("button");
+            sessionButton.type = "button";
+            sessionButton.className = "race-session-button";
+            sessionButton.textContent = `${translateSessionName(item.session_name || item.session_type)} · ${formatDate(item.date_start, { year: undefined, hour: undefined, minute: undefined })}`;
+            sessionButton.addEventListener("click", () => openRacePage(session, String(item.session_key)));
+            sessionList.append(sessionButton);
+          });
+          event.append(sessionList);
+        }
+        list.append(event);
       });
+      addShowMore(list, 5, "個分站");
+      animateRaceRows();
     }
 
     function renderDrivers() {
       const list = $("#driverList");
       list.replaceChildren();
+      addShowMore(list, 5, "位車手");
       const latestByDriver = new Map();
       state.positions.forEach((position) => {
         const existing = latestByDriver.get(position.driver_number);
@@ -1349,6 +2423,7 @@
       const driverByNumber = new Map(state.drivers.map((driver) => [driver.driver_number, driver]));
       if (!classified.length) {
         list.innerHTML = '<div class="empty-state">這場賽事沒有可用的名次資料。</div>';
+        addShowMore(list, 5, "位車手");
         $("#driverCount").textContent = "0";
         return;
       }
@@ -1356,16 +2431,26 @@
         const driver = driverByNumber.get(position.driver_number);
         const row = document.createElement("div");
         row.className = "driver-row";
+        row.style.setProperty("--team-color", driverTeamColor(driver));
         const place = document.createElement("span");
         place.className = "driver-position";
         place.textContent = String(position.position);
         const identity = document.createElement("span");
         const name = document.createElement("span");
         name.className = "driver-name";
-        name.textContent = driver ? `${driver.name_acronym || ""}　${driver.full_name || driver.broadcast_name || "未知車手"}` : `車手 #${position.driver_number}`;
+        if (driver) {
+          const shortCode = driverShortCode(driver);
+          const driverLink = createProfileLink(
+            shortCode ? `${shortCode}　${driverDisplayName(driver)}` : driverDisplayName(driver),
+            driverProfileHref(driver),
+            driverTeamColor(driver)
+          );
+          name.append(driverLink);
+        } else name.textContent = `車手 #${position.driver_number}`;
         const team = document.createElement("span");
         team.className = "driver-team";
-        team.textContent = driver?.team_name || "車隊資料未提供";
+        if (driver?.team_name) team.append(createProfileLink(teamDisplayName(driver.team_name), teamProfileHref(driver.team_name), driverTeamColor(driver)));
+        else team.textContent = teamDisplayName(driver?.team_name);
         identity.append(name, team);
         const number = document.createElement("span");
         number.className = "driver-number";
@@ -1373,7 +2458,127 @@
         row.append(place, identity, number);
         list.append(row);
       });
+      addShowMore(list, 5, "位車手");
       $("#driverCount").textContent = String(classified.length);
+      animateDriverRows();
+    }
+
+    function renderChampionshipList(target, standings, drivers, kind) {
+      const list = $(`#${target}`);
+      list.replaceChildren();
+      updateFavoriteFilterButton(kind);
+      const sorted = standings.slice().sort((a, b) =>
+        Number(a.position_current) - Number(b.position_current)
+      );
+      const driverByNumber = new Map(drivers.map((driver) => [Number(driver.driver_number), driver]));
+      const visibleStandings = state.favoritesOnly[kind]
+        ? sorted.filter((entry) => isFavorite(kind, kind === "drivers" ? entry.driver_number : entry.team_name))
+        : sorted;
+      if (!visibleStandings.length) {
+        const empty = document.createElement("div");
+        empty.className = "championship-empty";
+        empty.textContent = state.favoritesOnly[kind]
+          ? "尚未收藏項目；可按各列的 ☆ 加入收藏。"
+          : "目前沒有可用的積分榜資料。";
+        list.append(empty);
+        addShowMore(list, 5, kind === "drivers" ? "位車手" : "支車隊");
+        return;
+      }
+      const maxPoints = Math.max(...sorted.map((entry) => Number(entry.points_current) || 0), 1);
+      visibleStandings.forEach((entry) => {
+        const driver = kind === "drivers" ? driverByNumber.get(Number(entry.driver_number)) : null;
+        const teamName = kind === "teams" ? entry.team_name : driver?.team_name;
+        const teamDriver = drivers.find((item) => item.team_name === teamName);
+        const color = driverTeamColor(driver || teamDriver);
+        const row = document.createElement("div");
+        row.className = "championship-row";
+        row.style.setProperty("--team-color", color);
+
+        const position = document.createElement("span");
+        position.className = "championship-position";
+        position.textContent = String(entry.position_current ?? "—");
+        const rank = Number(entry.position_current);
+        if (rank >= 1 && rank <= 3) position.classList.add(`top-${rank}`);
+        const acronym = document.createElement("span");
+        acronym.className = "championship-acronym";
+        acronym.textContent = kind === "drivers" ? driverShortCode(driver) || `#${entry.driver_number}` : "TEAM";
+
+        const identity = document.createElement("span");
+        const name = document.createElement("span");
+        name.className = "championship-name";
+        const displayName = kind === "drivers"
+          ? driverDisplayName(driver)
+          : teamDisplayName(entry.team_name);
+        if (kind === "drivers" && driver) {
+          name.append(createProfileLink(displayName, driverProfileHref(driver), color));
+        } else if (kind === "teams") {
+          name.append(createProfileLink(displayName, teamProfileHref(entry.team_name), color));
+        } else name.textContent = displayName;
+        identity.append(name);
+        if (kind === "drivers" && driver?.full_name) {
+          const team = document.createElement("span");
+          team.className = "championship-team";
+          const englishName = document.createTextNode(`${driver.full_name} · `);
+          team.append(englishName, createProfileLink(teamDisplayName(driver.team_name), teamProfileHref(driver.team_name), color));
+          identity.append(team);
+        }
+
+        const pointsValue = Number(entry.points_current) || 0;
+        const ring = document.createElement("span");
+        ring.className = "championship-ring";
+        ring.style.setProperty("--score-progress", `${Math.max(0, Math.min(1, pointsValue / maxPoints)) * 360}deg`);
+        ring.setAttribute("aria-label", `${pointsValue} 分`);
+        const points = document.createElement("b");
+        points.textContent = String(pointsValue);
+        ring.append(points);
+        const favorite = document.createElement("button");
+        favorite.type = "button";
+        favorite.className = "favorite-button";
+        const favoriteId = kind === "drivers" ? String(entry.driver_number) : String(entry.team_name || "");
+        const favorited = isFavorite(kind, favoriteId);
+        favorite.textContent = favorited ? "★" : "☆";
+        favorite.setAttribute("aria-label", `${favorited ? "取消收藏" : "加入收藏"}${kind === "drivers" ? driverDisplayName(driver) : teamDisplayName(entry.team_name)}`);
+        favorite.setAttribute("aria-pressed", String(favorited));
+        favorite.addEventListener("click", () => toggleFavorite(kind, favoriteId));
+        row.append(position, acronym, identity, ring, favorite);
+        list.append(row);
+      });
+      addShowMore(list, 5, kind === "drivers" ? "位車手" : "支車隊");
+    }
+
+    async function loadChampionshipStandings(session, drivers, signal) {
+      const suffix = `${getYear()} 賽季 · 截至 ${createRaceName(session)}`;
+      $("#driverChampionshipSubtitle").textContent = suffix;
+      $("#teamChampionshipSubtitle").textContent = suffix;
+      $("#driverChampionshipStatus").textContent = "正在載入車手積分…";
+      $("#teamChampionshipStatus").textContent = "正在載入車隊積分…";
+      const requests = await Promise.allSettled([
+        fetchJson(`${API_BASE}/championship_drivers?session_key=${encodeURIComponent(session.session_key)}`, signal),
+        fetchJson(`${API_BASE}/championship_teams?session_key=${encodeURIComponent(session.session_key)}`, signal)
+      ]);
+      if (signal.aborted) return;
+      const [driverResult, teamResult] = requests;
+      state.driverStandings = driverResult.status === "fulfilled" ? driverResult.value : [];
+      state.teamStandings = teamResult.status === "fulfilled" ? teamResult.value : [];
+      state.championshipSession = session;
+      if (driverResult.status === "fulfilled") {
+        renderChampionshipList("driverChampionshipList", driverResult.value, drivers, "drivers");
+        $("#driverChampionshipStatus").textContent = driverResult.value.length
+          ? `${driverResult.value.length} 位車手 · ${formatDate(session.date_end, { year: undefined, hour: undefined, minute: undefined })}`
+          : "此站尚無車手積分資料";
+      } else {
+        $("#driverChampionshipList").replaceChildren();
+        $("#driverChampionshipStatus").textContent = `車手積分無法載入：${driverResult.reason.message}`;
+      }
+      if (teamResult.status === "fulfilled") {
+        renderChampionshipList("teamChampionshipList", teamResult.value, drivers, "teams");
+        $("#teamChampionshipStatus").textContent = teamResult.value.length
+          ? `${teamResult.value.length} 支車隊 · ${formatDate(session.date_end, { year: undefined, hour: undefined, minute: undefined })}`
+          : "此站尚無車隊積分資料";
+      } else {
+        $("#teamChampionshipList").replaceChildren();
+        $("#teamChampionshipStatus").textContent = `車隊積分無法載入：${teamResult.reason.message}`;
+      }
     }
 
     async function loadLatestClassification(signal) {
@@ -1384,11 +2589,25 @@
       const latest = pastRaces[pastRaces.length - 1];
       state.positions = [];
       state.drivers = [];
+      state.driverStandings = [];
+      state.teamStandings = [];
+      state.championshipSession = null;
+      state.scheduleLoaded = false;
+      state.profileDataReady = false;
+      state.profileDataError = "";
       if (!latest) {
         $("#classificationSubtitle").textContent = "本賽季尚無已完成正賽。";
         $("#classificationStatus").textContent = "尚無已完成正賽";
         $("#latestSession").textContent = "—";
+        $("#driverChampionshipSubtitle").textContent = `${getYear()} 賽季`;
+        $("#teamChampionshipSubtitle").textContent = `${getYear()} 賽季`;
+        $("#driverChampionshipStatus").textContent = "本賽季尚無已完成正賽。";
+        $("#teamChampionshipStatus").textContent = "本賽季尚無已完成正賽。";
+        $("#driverChampionshipList").replaceChildren();
+        $("#teamChampionshipList").replaceChildren();
         renderDrivers();
+        state.profileDataReady = true;
+        if (/^#(?:driver|team)\//.test(location.hash)) handleRoute();
         return;
       }
       $("#classificationSubtitle").textContent = `${createRaceName(latest)} ・ ${formatDate(latest.date_start, { year: undefined, hour: undefined, minute: undefined })}`;
@@ -1402,6 +2621,9 @@
       state.positions = positions;
       renderDrivers();
       $("#classificationStatus").textContent = positions.length ? "歷史名次已載入" : "沒有名次資料";
+      await loadChampionshipStandings(latest, drivers, signal);
+      state.profileDataReady = true;
+      if (!signal.aborted && /^#(?:driver|team)\//.test(location.hash)) handleRoute();
     }
 
     async function loadSeason() {
@@ -1409,14 +2631,29 @@
       requestController = new AbortController();
       const { signal } = requestController;
       const year = getYear();
+      state.drivers = [];
+      state.positions = [];
+      state.driverStandings = [];
+      state.teamStandings = [];
+      state.championshipSession = null;
       setStatus(`正在載入 ${year} 賽季賽程…`);
       $("#raceList").innerHTML = '<div class="empty-state">正在取得賽程資料…</div>';
+      $("#driverChampionshipSubtitle").textContent = `${year} 賽季車手錦標賽排名`;
+      $("#teamChampionshipSubtitle").textContent = `${year} 賽季車隊錦標賽排名`;
+      $("#driverChampionshipStatus").textContent = "正在載入賽季資料…";
+      $("#teamChampionshipStatus").textContent = "正在載入賽季資料…";
+      $("#driverChampionshipList").replaceChildren();
+      $("#teamChampionshipList").replaceChildren();
       try {
-        const sessions = await fetchJson(`${API_BASE}/sessions?year=${year}&session_type=Race`, signal);
+        const sessions = await fetchJson(`${API_BASE}/sessions?year=${year}`, signal);
         const meetings = await fetchJson(`${API_BASE}/meetings?year=${year}`, signal);
         state.meetings = meetings;
         state.selectedMeeting = null;
-        state.sessions = sessions.filter((session) => session.session_name === "Race" && !session.is_cancelled).sort((a, b) =>
+        state.weekendSessions = sessions.filter((session) => !session.is_cancelled).sort((a, b) =>
+          new Date(a.date_start).getTime() - new Date(b.date_start).getTime()
+        );
+        state.scheduleLoaded = true;
+        state.sessions = state.weekendSessions.filter((session) => session.session_name === "Race").sort((a, b) =>
           new Date(a.date_start).getTime() - new Date(b.date_start).getTime()
         );
         renderStats();
@@ -1426,15 +2663,24 @@
           await loadLatestClassification(signal);
         } catch (error) {
           if (signal.aborted) return;
+          state.profileDataReady = true;
+          state.profileDataError = error.message;
           $("#classificationStatus").textContent = "名次資料暫時無法載入";
           $("#driverList").innerHTML = '<div class="empty-state">賽程已載入，但名次資料目前無法取得。請稍後重新整理。</div>';
+          $("#driverChampionshipStatus").textContent = `車手積分無法載入：${error.message}`;
+          $("#teamChampionshipStatus").textContent = `車隊積分無法載入：${error.message}`;
+          if (/^#(?:driver|team)\//.test(location.hash)) handleRoute();
           setStatus(`賽程已載入；名次資料無法取得：${error instanceof TypeError ? "請檢查網路連線。" : error.message}`, "warning");
           return;
         }
         if (!signal.aborted) setStatus(`已載入 ${year} 賽季 ${state.sessions.length} 個正賽分站；名次為最近已完成賽事資料。`, "success");
       } catch (error) {
         if (error.name === "AbortError") return;
+        state.profileDataReady = true;
+        state.profileDataError = error.message;
         state.sessions = [];
+        state.weekendSessions = [];
+        state.scheduleLoaded = false;
         state.positions = [];
         state.drivers = [];
         state.meetings = [];
@@ -1442,6 +2688,9 @@
         renderRaces();
         renderDrivers();
         $("#classificationStatus").textContent = "載入失敗";
+        $("#driverChampionshipStatus").textContent = `車手積分無法載入：${error.message}`;
+        $("#teamChampionshipStatus").textContent = `車隊積分無法載入：${error.message}`;
+        if (/^#(?:driver|team)\//.test(location.hash)) handleRoute();
         setStatus(error instanceof TypeError ? "無法連線至 OpenF1。請檢查網路，並使用本機伺服器或 HTTPS 開啟頁面。" : error.message, "error");
       }
     }
@@ -1495,11 +2744,34 @@
     }
 
     function driverLabel(number, drivers) {
+      return createDriverIdentity(number, drivers);
+    }
+
+    function createDriverIdentity(number, drivers) {
       const driver = drivers.find((item) => Number(item.driver_number) === Number(number));
-      return driver ? `${driver.name_acronym || driver.full_name} (#${number})` : `車手 #${number}`;
+      const identity = document.createElement("span");
+      identity.className = "detail-driver-label";
+      identity.style.setProperty("--team-color", driverTeamColor(driver));
+      if (!driver) {
+        identity.textContent = `車手 #${number}`;
+        return identity;
+      }
+      const acronym = document.createElement("b");
+      acronym.textContent = driverShortCode(driver) || `#${number}`;
+      const name = document.createElement("span");
+      name.textContent = driverDisplayName(driver);
+      const team = document.createElement("span");
+      team.className = "detail-driver-team";
+      team.append(createProfileLink(teamDisplayName(driver.team_name), teamProfileHref(driver.team_name), driverTeamColor(driver)));
+      identity.append(acronym, createProfileLink(name.textContent, driverProfileHref(driver), driverTeamColor(driver)), team);
+      return identity;
     }
 
     function renderDetailResults(positions, drivers) {
+      replayPositionRecords = positions
+        .map((item) => ({ ...item, timestamp: new Date(item.date).getTime() }))
+        .filter((item) => Number.isFinite(item.timestamp) && Number.isFinite(Number(item.position)))
+        .sort((a, b) => a.timestamp - b.timestamp);
       const latest = new Map();
       positions.forEach((item) => {
         const current = latest.get(item.driver_number);
@@ -1509,53 +2781,307 @@
         .sort((a, b) => a.position - b.position)
         .map((item) => [
           item.position,
-          driverLabel(item.driver_number, drivers),
-          drivers.find((driver) => Number(driver.driver_number) === Number(item.driver_number))?.team_name || "—",
+          createDriverIdentity(item.driver_number, drivers),
+          (() => {
+            const driver = drivers.find((entry) => Number(entry.driver_number) === Number(item.driver_number));
+            return driver?.team_name
+              ? createProfileLink(teamDisplayName(driver.team_name), teamProfileHref(driver.team_name), driverTeamColor(driver))
+              : teamDisplayName(driver?.team_name);
+          })(),
           formatDate(item.date, { year: undefined }),
           item.position === 1 ? "領先" : "完成位置"
         ]);
       renderDataTable("resultsTable", ["名次", "車手", "車隊", "最後更新", "狀態"], rows, "本賽段尚未有位置資料。未舉行或資料尚未公開的賽事會顯示空白。");
+      if (replayCars.length) updateRaceReplay(replayCurrentTime);
+    }
+
+    function appendProfileMetric(container, label, value) {
+      const metric = document.createElement("div");
+      metric.className = "profile-metric";
+      const heading = document.createElement("span");
+      heading.textContent = label;
+      const output = document.createElement("b");
+      if (value instanceof Node) output.append(value);
+      else output.textContent = value === null || value === undefined || value === "" ? "—" : String(value);
+      metric.append(heading, output);
+      container.append(metric);
+    }
+
+    function appendProfileRow(container, label, value) {
+      const row = document.createElement("div");
+      row.className = "profile-list-row";
+      const heading = document.createElement("span");
+      heading.className = "panel-subtitle";
+      heading.textContent = label;
+      const detail = document.createElement("b");
+      detail.style.textAlign = "right";
+      detail.style.fontSize = "10px";
+      if (value instanceof Node) detail.append(value);
+      else detail.textContent = value === null || value === undefined || value === "" ? "—" : String(value);
+      row.append(heading, detail);
+      container.append(row);
+    }
+
+    function renderDriverProfile(driverNumber) {
+      const driver = state.drivers.find((item) => Number(item.driver_number) === Number(driverNumber));
+      if (!driver) {
+        profileFavorite = null;
+        updateProfileFavoriteButton();
+        const unavailable = state.profileDataReady && state.profileDataError;
+        $("#profileTitle").textContent = !state.profileDataReady
+          ? "車手資料載入中"
+          : unavailable ? "車手資料暫時無法載入" : "找不到此車手";
+        $("#profileSubtitle").textContent = !state.profileDataReady
+          ? "正在載入賽季車手與積分資料…"
+          : unavailable ? state.profileDataError : `車手編號 #${driverNumber} 不在目前賽季名單中。`;
+        $("#profileMetrics").replaceChildren();
+        $("#profilePrimaryList").replaceChildren();
+        $("#profileSecondaryList").replaceChildren();
+          addShowMore($("#profilePrimaryList"), 4, "項資訊");
+          addShowMore($("#profileSecondaryList"), 4, "項資訊");
+          return;
+      }
+      profileFavorite = { kind: "drivers", identifier: String(driver.driver_number) };
+      updateProfileFavoriteButton();
+      const color = driverTeamColor(driver);
+      $("#profileHero").style.setProperty("--profile-color", color);
+      $("#profileMark").textContent = driverShortCode(driver) || `#${driver.driver_number}`;
+      $("#profileKicker").textContent = `${getYear()} SEASON · DRIVER`;
+      $("#profileTitle").textContent = driverDisplayName(driver);
+      $("#profileSubtitle").textContent = `${driver.full_name || driver.broadcast_name || ""} · ${teamDisplayName(driver.team_name)}`;
+      $("#profileNumber").textContent = `#${driver.driver_number}`;
+
+      const standing = state.driverStandings.find((item) => Number(item.driver_number) === Number(driver.driver_number));
+      const latestPosition = state.positions
+        .filter((item) => Number(item.driver_number) === Number(driver.driver_number))
+        .reduce((latest, item) => !latest || new Date(item.date) > new Date(latest.date) ? item : latest, null);
+      $("#profileMetrics").replaceChildren();
+      appendProfileMetric($("#profileMetrics"), "車手排名", standing ? `P${standing.position_current}` : "—");
+      appendProfileMetric($("#profileMetrics"), "賽季積分", standing?.points_current ?? "—");
+      appendProfileMetric($("#profileMetrics"), "車隊", teamDisplayName(driver.team_name));
+      appendProfileMetric($("#profileMetrics"), "最近賽事名次", latestPosition ? `P${latestPosition.position}` : "—");
+
+      $("#profilePrimaryTitle").textContent = "賽季表現";
+      $("#profilePrimarySubtitle").textContent = "最新已完成正賽與錦標賽排名";
+      $("#profilePrimaryCode").textContent = "CLASSIFICATION";
+      $("#profilePrimaryList").replaceChildren();
+      appendProfileRow($("#profilePrimaryList"), "車手積分排名", standing ? `第 ${standing.position_current} 名` : "尚無積分資料");
+      appendProfileRow($("#profilePrimaryList"), "目前積分", standing ? `${standing.points_current} 分` : "—");
+      appendProfileRow($("#profilePrimaryList"), "最近已完成賽事", state.championshipSession ? createRaceName(state.championshipSession) : "尚無已完成賽事");
+      appendProfileRow($("#profilePrimaryList"), "最近賽事名次", latestPosition ? `第 ${latestPosition.position} 名` : "沒有名次資料");
+
+      $("#profileSecondaryTitle").textContent = "車手資訊";
+      $("#profileSecondarySubtitle").textContent = "車手與所屬車隊";
+      $("#profileSecondaryCode").textContent = "DRIVER";
+      $("#profileSecondaryList").replaceChildren();
+      appendProfileRow($("#profileSecondaryList"), "車號", `#${driver.driver_number}`);
+      appendProfileRow($("#profileSecondaryList"), "車手縮寫", driverShortCode(driver) || "—");
+      appendProfileRow($("#profileSecondaryList"), "英文姓名", driver.full_name || driver.broadcast_name || "—");
+      appendProfileRow($("#profileSecondaryList"), "所屬車隊",
+        createProfileLink(teamDisplayName(driver.team_name), teamProfileHref(driver.team_name), color));
+      addShowMore($("#profilePrimaryList"), 4, "項資訊");
+      addShowMore($("#profileSecondaryList"), 4, "項資訊");
+    }
+
+    function renderTeamProfile(teamName) {
+      const normalizedTeam = String(teamName || "").toLowerCase();
+      const teamDrivers = state.drivers.filter((driver) => String(driver.team_name || "").toLowerCase() === normalizedTeam);
+      const standing = state.teamStandings.find((item) => String(item.team_name || "").toLowerCase() === normalizedTeam);
+      const canonicalName = standing?.team_name || teamDrivers[0]?.team_name || teamName;
+      if (!teamDrivers.length && !standing) {
+        profileFavorite = null;
+        updateProfileFavoriteButton();
+        const unavailable = state.profileDataReady && state.profileDataError;
+        $("#profileTitle").textContent = !state.profileDataReady
+          ? "車隊資料載入中"
+          : unavailable ? "車隊資料暫時無法載入" : "找不到此車隊";
+        $("#profileSubtitle").textContent = !state.profileDataReady
+          ? "正在載入賽季車手與積分資料…"
+          : unavailable ? state.profileDataError : `「${teamDisplayName(teamName)}」不在目前賽季名單中。`;
+        $("#profileMetrics").replaceChildren();
+        $("#profilePrimaryList").replaceChildren();
+        $("#profileSecondaryList").replaceChildren();
+        addShowMore($("#profilePrimaryList"), 4, "位車手");
+        addShowMore($("#profileSecondaryList"), 4, "項資訊");
+        return;
+      }
+      profileFavorite = { kind: "teams", identifier: canonicalName };
+      updateProfileFavoriteButton();
+      const color = driverTeamColor(teamDrivers[0]);
+      $("#profileHero").style.setProperty("--profile-color", color);
+      $("#profileMark").textContent = "TEAM";
+      $("#profileKicker").textContent = `${getYear()} SEASON · CONSTRUCTOR`;
+      $("#profileTitle").textContent = teamDisplayName(canonicalName);
+      $("#profileSubtitle").textContent = `${canonicalName || "車隊"} · ${teamDrivers.length} 位車手`;
+      $("#profileNumber").textContent = standing ? `P${standing.position_current}` : "—";
+
+      const latestByDriver = new Map();
+      state.positions.forEach((item) => {
+        const current = latestByDriver.get(Number(item.driver_number));
+        if (!current || new Date(item.date) > new Date(current.date)) latestByDriver.set(Number(item.driver_number), item);
+      });
+      const teamLatestPositions = teamDrivers
+        .map((driver) => ({ driver, result: latestByDriver.get(Number(driver.driver_number)) }))
+        .filter((item) => item.result)
+        .sort((a, b) => Number(a.result.position) - Number(b.result.position));
+      $("#profileMetrics").replaceChildren();
+      appendProfileMetric($("#profileMetrics"), "車隊排名", standing ? `P${standing.position_current}` : "—");
+      appendProfileMetric($("#profileMetrics"), "賽季積分", standing?.points_current ?? "—");
+      appendProfileMetric($("#profileMetrics"), "車手人數", teamDrivers.length);
+      appendProfileMetric($("#profileMetrics"), "最近賽事最佳名次", teamLatestPositions[0] ? `P${teamLatestPositions[0].result.position}` : "—");
+
+      $("#profilePrimaryTitle").textContent = "車隊車手";
+      $("#profilePrimarySubtitle").textContent = "點選車手查看個人頁面";
+      $("#profilePrimaryCode").textContent = "DRIVERS";
+      $("#profilePrimaryList").replaceChildren();
+      if (teamDrivers.length) {
+        teamDrivers
+          .slice()
+          .sort((a, b) => (driverShortCode(a) || "").localeCompare(driverShortCode(b) || ""))
+          .forEach((driver) => {
+            const row = document.createElement("div");
+            row.className = "profile-list-row";
+            row.append(createProfileLink(
+              `${driverShortCode(driver) || `#${driver.driver_number}`} · ${driverDisplayName(driver)}`,
+              driverProfileHref(driver),
+              color
+            ));
+            const result = latestByDriver.get(Number(driver.driver_number));
+            const position = document.createElement("b");
+            position.textContent = result ? `P${result.position}` : `#${driver.driver_number}`;
+            row.append(position);
+            $("#profilePrimaryList").append(row);
+          });
+      } else {
+        const empty = document.createElement("div");
+        empty.className = "profile-empty";
+        empty.textContent = "目前沒有車手名單資料。";
+        $("#profilePrimaryList").append(empty);
+      }
+
+      $("#profileSecondaryTitle").textContent = "車隊賽季";
+      $("#profileSecondarySubtitle").textContent = "錦標賽積分與最近分站名次";
+      $("#profileSecondaryCode").textContent = "CONSTRUCTOR";
+      $("#profileSecondaryList").replaceChildren();
+      appendProfileRow($("#profileSecondaryList"), "車隊排名", standing ? `第 ${standing.position_current} 名` : "尚無積分資料");
+      appendProfileRow($("#profileSecondaryList"), "目前積分", standing ? `${standing.points_current} 分` : "—");
+      appendProfileRow($("#profileSecondaryList"), "最近已完成賽事", state.championshipSession ? createRaceName(state.championshipSession) : "尚無已完成賽事");
+      appendProfileRow($("#profileSecondaryList"), "分站名次", teamLatestPositions.length
+        ? teamLatestPositions.map(({ driver, result }) => `${driverShortCode(driver) || `#${driver.driver_number}`} P${result.position}`).join(" · ")
+        : "沒有名次資料");
+      addShowMore($("#profilePrimaryList"), 4, "位車手");
+      addShowMore($("#profileSecondaryList"), 4, "項資訊");
+    }
+
+    function openProfilePage(type, identifier) {
+      if (detailController) detailController.abort();
+      setRaceReplayExpanded(false);
+      resetRaceReplay("按「載入多人賽道回放」後才會向資料來源請求 GPS 軌跡。");
+      state.selectedMeeting = null;
+      $("#overview").classList.add("detail-mode", "profile-mode");
+      $("#raceDetailPage").hidden = true;
+      $("#profileDetailPage").hidden = false;
+      $("#breadcrumbLabel").textContent = type === "driver" ? "車手資料" : "車隊資料";
+      document.title = `${type === "driver" ? "車手" : "車隊"}資料 // APEX F1`;
+      if (type === "driver") renderDriverProfile(identifier);
+      else renderTeamProfile(identifier);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (window.gsap && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        gsap.fromTo("#profileDetailPage > *", { y: 14, autoAlpha: 0 }, {
+          y: 0, autoAlpha: 1, duration: 0.35, stagger: 0.05, ease: "power2.out", clearProps: "transform"
+        });
+      }
     }
 
     function resetRaceReplay(message) {
       if (replayController) replayController.abort();
+      replayStartTimers.forEach(clearTimeout);
+      replayStartTimers = [];
       if (replayFrame) cancelAnimationFrame(replayFrame);
       replayFrame = 0;
       replayPlaying = false;
-      replayRecords = [];
-      replayTimes = [];
+      replayStarting = false;
+      replayCars = [];
+      replayPositionRecords = [];
+      replayLastLeaderboardSecond = -1;
       replayGeometry = null;
+      replayLoadedSessionKey = "";
+      replayLoadingSessionKey = "";
       replayLastDisplayedSecond = -1;
       replayCurrentTime = 0;
       $("#replayTrackBase").setAttribute("points", "");
       $("#replayTrackLine").setAttribute("points", "");
       $("#replayTrackCenter").setAttribute("points", "");
-      $("#replayMarker").setAttribute("hidden", "");
+      $("#replayMarkers").replaceChildren();
+      $("#replayDriverList").replaceChildren();
+      $("#replayDriverList").innerHTML = '<div class="replay-leaderboard-empty">載入回放後顯示車手名次、車號與車隊。</div>';
+      $("#replayLeaderboardStatus").textContent = "等待回放";
+      $("#replayStartLights").hidden = true;
+      $("#replayStartLights").classList.remove("lights-out");
+      $("#replayStartLightsLabel").textContent = "LIGHTS OUT";
+      $$(".replay-start-lights-bulbs span").forEach((bulb) => bulb.classList.remove("on"));
       $("#replayEmpty").hidden = false;
       $("#replayEmpty").textContent = message;
       $("#replayStatus").textContent = "等待 GPS 資料";
       $("#replayPlay").disabled = true;
-      $("#replayPlay").textContent = "▶ 播放";
+      $("#replayPlay").textContent = "▶ 起跑";
       $("#replayProgress").disabled = true;
       $("#replayProgress").value = "0";
       $("#replayTime").textContent = "—";
     }
 
-    function renderRaceReplay(data, driver) {
-      const valid = data
-        .filter((item) => item.x !== null && item.x !== undefined && item.y !== null && item.y !== undefined && item.date &&
-          Number.isFinite(Number(item.x)) && Number.isFinite(Number(item.y)) && Number.isFinite(new Date(item.date).getTime()))
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      if (valid.length < 2) {
-        resetRaceReplay("此賽段沒有足夠的 GPS 軌跡可供回放。可選擇已完成的正賽或其他車手。");
+    function replayTeamColor(driver) {
+      const color = String(driver.team_colour || "").replace(/^#/, "");
+      return /^[0-9a-f]{6}$/i.test(color) ? `#${color}` : "#92989c";
+    }
+
+    function replayPositionAt(car, timestamp) {
+      const lastIndex = car.records.length - 1;
+      let low = 0;
+      let high = lastIndex;
+      while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+        if (car.times[middle] < timestamp) low = middle + 1;
+        else high = middle;
+      }
+      const currentIndex = low;
+      const previousIndex = Math.max(0, currentIndex - 1);
+      const current = car.records[currentIndex];
+      const previous = car.records[previousIndex];
+      const previousTime = car.times[previousIndex];
+      const currentTime = car.times[currentIndex];
+      const ratio = currentTime > previousTime
+        ? Math.max(0, Math.min(1, (timestamp - previousTime) / (currentTime - previousTime)))
+        : 0;
+      return {
+        x: Number(previous.x) + (Number(current.x) - Number(previous.x)) * ratio,
+        y: Number(previous.y) + (Number(current.y) - Number(previous.y)) * ratio
+      };
+    }
+
+    function renderRaceReplay(cars, startTime) {
+      replayCars = cars.map(({ driver, data }) => {
+        const valid = data
+          .filter((item) => item.x !== null && item.x !== undefined && item.y !== null && item.y !== undefined && item.date &&
+            Number.isFinite(Number(item.x)) && Number.isFinite(Number(item.y)) &&
+            (Number(item.x) !== 0 || Number(item.y) !== 0) && Number.isFinite(new Date(item.date).getTime()))
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        if (valid.length < 2) return null;
+        const stride = Math.max(1, Math.ceil(valid.length / 1600));
+        const records = valid.filter((item, index) => index % stride === 0 || index === valid.length - 1);
+        return {
+          driver, records, times: records.map((item) => new Date(item.date).getTime()),
+          color: replayTeamColor(driver), marker: null
+        };
+      }).filter(Boolean);
+      if (!replayCars.length) {
+        resetRaceReplay("此賽段沒有可用的全車手 GPS 軌跡。");
         $("#replayStatus").textContent = "沒有 GPS 軌跡";
         return;
       }
-      const maxSamples = 2400;
-      const stride = Math.max(1, Math.ceil(valid.length / maxSamples));
-      replayRecords = valid.filter((item, index) => index % stride === 0 || index === valid.length - 1);
-      const xs = replayRecords.map((item) => Number(item.x));
-      const ys = replayRecords.map((item) => Number(item.y));
+      const allRecords = replayCars.flatMap((car) => car.records);
+      const xs = allRecords.map((item) => Number(item.x));
+      const ys = allRecords.map((item) => Number(item.y));
       const minX = Math.min(...xs);
       const maxX = Math.max(...xs);
       const minY = Math.min(...ys);
@@ -1572,7 +3098,7 @@
       const offsetX = (1000 - rangeX * scale) / 2;
       const offsetY = (560 - rangeY * scale) / 2;
       replayGeometry = { minX, minY, scale, offsetX, offsetY };
-      const points = replayRecords.map((item) => {
+      const points = replayCars[0].records.map((item) => {
         const x = offsetX + (Number(item.x) - minX) * scale;
         const y = 560 - offsetY - (Number(item.y) - minY) * scale;
         return [x, y];
@@ -1581,59 +3107,179 @@
       ["replayTrackBase", "replayTrackLine", "replayTrackCenter"].forEach((id) => {
         $(`#${id}`).setAttribute("points", pointString);
       });
-      $("#replayStartLabel").setAttribute("x", String(Math.max(16, points[0][0] - 36)));
-      $("#replayStartLabel").setAttribute("y", String(Math.max(25, points[0][1] - 32)));
-      $("#replayMarker").removeAttribute("hidden");
-      $("#replayDriverNumber").textContent = String(driver.driver_number);
-      replayStartTime = new Date(replayRecords[0].date).getTime();
-      replayEndTime = new Date(replayRecords[replayRecords.length - 1].date).getTime();
-      replayTimes = replayRecords.map((item) => new Date(item.date).getTime());
+      animateReplayTrack();
+      const startPosition = replayPositionAt(replayCars[0], startTime);
+      const startX = offsetX + (startPosition.x - minX) * scale;
+      const startY = 560 - offsetY - (startPosition.y - minY) * scale;
+      $("#replayStartLabel").setAttribute("x", String(Math.max(16, startX - 36)));
+      $("#replayStartLabel").setAttribute("y", String(Math.max(25, startY - 32)));
+      const markerLayer = $("#replayMarkers");
+      const leaderboard = $("#replayDriverList");
+      leaderboard.replaceChildren();
+      replayCars.forEach((car) => {
+        const marker = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        marker.setAttribute("class", "replay-marker");
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("r", "9");
+        circle.setAttribute("fill", car.color);
+        const number = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        number.textContent = String(car.driver.driver_number);
+        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        title.textContent = `${driverShortCode(car.driver) || `#${car.driver.driver_number}`} · ${car.driver.team_name || "車隊"}`;
+        marker.append(circle, number, title);
+        markerLayer.append(marker);
+        car.marker = marker;
+
+        const row = document.createElement("div");
+        row.className = "replay-leaderboard-row";
+        row.style.setProperty("--team-color", car.color);
+        const position = document.createElement("b");
+        position.className = "replay-rank";
+        const numberLabel = document.createElement("span");
+        numberLabel.className = "replay-driver-number";
+        numberLabel.textContent = `#${car.driver.driver_number}`;
+        const identity = document.createElement("span");
+        identity.className = "replay-driver-identity";
+        const name = document.createElement("b");
+        name.append(createProfileLink(
+          driverShortCode(car.driver) || driverDisplayName(car.driver),
+          driverProfileHref(car.driver),
+          car.color
+        ));
+        const team = document.createElement("span");
+        team.append(createProfileLink(teamDisplayName(car.driver.team_name), teamProfileHref(car.driver.team_name), car.color));
+        identity.append(name, team);
+        row.append(position, numberLabel, identity);
+        row.title = `${driverDisplayName(car.driver)} · ${car.driver.full_name || ""}`;
+        leaderboard.append(row);
+        car.leaderboardRow = row;
+        car.position = null;
+      });
+      replayStartTime = startTime;
+      replayEndTime = Math.max(...replayCars.map((car) => car.times[car.times.length - 1]));
       replayCurrentTime = replayStartTime;
       $("#replayProgress").disabled = false;
       $("#replayProgress").value = "0";
       $("#replayPlay").disabled = false;
       $("#replayEmpty").hidden = true;
-      $("#replayStatus").textContent = `GPS 軌跡 · ${driver.name_acronym || `#${driver.driver_number}`}`;
+      $("#replayStatus").textContent = `全車手 GPS · ${replayCars.length} / ${cars.length} 位車手`;
       updateRaceReplay(replayStartTime);
+      addShowMore(leaderboard, 6, "位車手");
     }
 
     function updateRaceReplay(timestamp) {
-      if (!replayRecords.length) return;
+      if (!replayCars.length) return;
       const duration = replayEndTime - replayStartTime;
       const progress = duration > 0 ? Math.max(0, Math.min(1, (timestamp - replayStartTime) / duration)) : 0;
       const targetTime = replayStartTime + duration * progress;
       replayCurrentTime = targetTime;
-      let low = 0;
-      let high = replayRecords.length - 1;
-      while (low < high) {
-        const middle = Math.floor((low + high) / 2);
-        if (replayTimes[middle] < targetTime) low = middle + 1;
-        else high = middle;
-      }
-      const current = replayRecords[low];
-      const previous = replayRecords[Math.max(0, low - 1)];
-      const previousTime = replayTimes[Math.max(0, low - 1)];
-      const currentTime = replayTimes[low];
-      const ratio = currentTime > previousTime ? (targetTime - previousTime) / (currentTime - previousTime) : 0;
-      const x = Number(previous.x) + (Number(current.x) - Number(previous.x)) * ratio;
-      const y = Number(previous.y) + (Number(current.y) - Number(previous.y)) * ratio;
-      const { minX, minY, scale, offsetX, offsetY } = replayGeometry;
-      const markerX = offsetX + (x - minX) * scale;
-      const markerY = 560 - offsetY - (y - minY) * scale;
-      $("#replayMarker").setAttribute("transform", `translate(${markerX.toFixed(1)} ${markerY.toFixed(1)})`);
+      replayCars.forEach((car) => {
+        const { x, y } = replayPositionAt(car, targetTime);
+        const { minX, minY, scale, offsetX, offsetY } = replayGeometry;
+        const markerX = offsetX + (x - minX) * scale;
+        const markerY = 560 - offsetY - (y - minY) * scale;
+        car.marker.setAttribute("transform", `translate(${markerX.toFixed(1)} ${markerY.toFixed(1)})`);
+      });
       $("#replayProgress").value = String(Math.round(progress * 1000));
       const displayedSecond = Math.floor(targetTime / 1000);
       if (displayedSecond !== replayLastDisplayedSecond) {
         $("#replayTime").textContent = formatDate(new Date(targetTime).toISOString(), { year: undefined });
         replayLastDisplayedSecond = displayedSecond;
       }
+      if (displayedSecond !== replayLastLeaderboardSecond) {
+        replayLastLeaderboardSecond = displayedSecond;
+        const positionsAtTime = new Map();
+        replayPositionRecords.forEach((record) => {
+          if (record.timestamp <= targetTime) {
+            positionsAtTime.set(Number(record.driver_number), Number(record.position));
+          }
+        });
+        const rankedCars = replayCars.slice().sort((a, b) => {
+          const positionA = positionsAtTime.get(Number(a.driver.driver_number));
+          const positionB = positionsAtTime.get(Number(b.driver.driver_number));
+          if (positionA === undefined && positionB !== undefined) return 1;
+          if (positionA !== undefined && positionB === undefined) return -1;
+          return (positionA ?? Number.MAX_SAFE_INTEGER) - (positionB ?? Number.MAX_SAFE_INTEGER) ||
+            Number(a.driver.driver_number) - Number(b.driver.driver_number);
+        });
+        rankedCars.forEach((car) => {
+          const position = positionsAtTime.get(Number(car.driver.driver_number));
+          car.leaderboardRow.querySelector(".replay-rank").textContent = position ? String(position) : "—";
+          car.leaderboardRow.classList.toggle("is-leading", position === 1);
+          $("#replayDriverList").append(car.leaderboardRow);
+        });
+        const visiblePositions = positionsAtTime.size;
+        $("#replayLeaderboardStatus").textContent = visiblePositions
+          ? `名次依播放時間同步 · ${visiblePositions} 位已取得官方位置資料`
+          : "位置資料尚未更新，暫以車號排序";
+      }
+    }
+
+    function clearReplayStart() {
+      replayStartTimers.forEach(clearTimeout);
+      replayStartTimers = [];
+      replayStarting = false;
+      $("#replayStartLights").hidden = true;
+      $("#replayStartLights").classList.remove("lights-out");
+      $("#replayStartLightsLabel").textContent = "LIGHTS OUT";
+      $$(".replay-start-lights-bulbs span").forEach((bulb) => bulb.classList.remove("on"));
+    }
+
+    function beginRaceReplay() {
+      clearReplayStart();
+      replayPlaying = true;
+      replayLastFrame = 0;
+      $("#replayPlay").textContent = "Ⅱ 暫停";
+      replayFrame = requestAnimationFrame(animateRaceReplay);
+    }
+
+    function startRaceReplay() {
+      if (replayStarting) {
+        clearReplayStart();
+        $("#replayPlay").textContent = "▶ 起跑";
+        return;
+      }
+      if (!replayCars.length) return;
+      let progress = Number($("#replayProgress").value);
+      if (replayCurrentTime >= replayEndTime || progress >= 1000) {
+        updateRaceReplay(replayStartTime);
+        progress = 0;
+      }
+      if (progress > 0) {
+        beginRaceReplay();
+        return;
+      }
+      updateRaceReplay(replayStartTime);
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        beginRaceReplay();
+        return;
+      }
+      replayStarting = true;
+      replayPlaying = false;
+      $("#replayStartLights").hidden = false;
+      $("#replayStartLights").classList.remove("lights-out");
+      $("#replayStartLightsLabel").textContent = "LIGHTS OUT";
+      $("#replayPlay").textContent = "■ 取消起跑";
+      const bulbs = $$(".replay-start-lights-bulbs span");
+      bulbs.forEach((bulb, index) => {
+        replayStartTimers.push(setTimeout(() => {
+          if (replayStarting) bulb.classList.add("on");
+        }, index * 420));
+      });
+      replayStartTimers.push(setTimeout(() => {
+        if (!replayStarting) return;
+        $("#replayStartLights").classList.add("lights-out");
+        $("#replayStartLightsLabel").textContent = "GO";
+        replayStartTimers.push(setTimeout(beginRaceReplay, 650));
+      }, bulbs.length * 420 + 250));
     }
 
     function stopRaceReplay() {
+      clearReplayStart();
       replayPlaying = false;
       if (replayFrame) cancelAnimationFrame(replayFrame);
       replayFrame = 0;
-      $("#replayPlay").textContent = "▶ 播放";
+      $("#replayPlay").textContent = "▶ 起跑";
     }
 
     function animateRaceReplay(now) {
@@ -1652,23 +3298,80 @@
       replayFrame = requestAnimationFrame(animateRaceReplay);
     }
 
-    async function loadRaceReplay(session, driver) {
-      resetRaceReplay(driver ? "正在載入這位車手的 GPS 軌跡…" : "此賽段沒有可選車手資料。");
-      if (!session || !driver) return;
+    async function loadRaceReplay(session) {
+      resetRaceReplay(state.drivers.length ? "正在載入全車手 GPS 軌跡…" : "此賽段沒有可選車手資料。");
+      if (!session || !state.drivers.length) return;
+      replayLoadingSessionKey = String(session.session_key);
       replayController = new AbortController();
       const { signal } = replayController;
       $("#replayStatus").textContent = "載入中";
       try {
-        const data = await fetchJson(
-          `${API_BASE}/location?session_key=${encodeURIComponent(session.session_key)}&driver_number=${encodeURIComponent(driver.driver_number)}`,
-          signal
+        const lapStarts = await fetchJson(
+          `${API_BASE}/laps?session_key=${encodeURIComponent(session.session_key)}&lap_number=1`, signal
         );
-        if (signal.aborted) return;
-        renderRaceReplay(data, driver);
+        const startTimes = lapStarts
+          .filter((lap) => Number(lap.lap_number) === 1 && lap.date_start && Number.isFinite(new Date(lap.date_start).getTime()))
+          .map((lap) => new Date(lap.date_start).getTime());
+        const startTime = startTimes.length ? Math.min(...startTimes) : new Date(session.date_start).getTime();
+        const startDate = encodeURIComponent(new Date(startTime).toISOString());
+        const endDate = encodeURIComponent(session.date_end);
+        const drivers = state.drivers.slice();
+        const locationsByDriver = new Map(drivers.map((driver) => [Number(driver.driver_number), []]));
+        const batchSize = 4;
+        for (let index = 0; index < drivers.length; index += batchSize) {
+          const batch = drivers.slice(index, index + batchSize);
+          const driverFilters = batch
+            .map((driver) => `driver_number=${encodeURIComponent(driver.driver_number)}`)
+            .join("&");
+          const query = `session_key=${encodeURIComponent(session.session_key)}&${driverFilters}&date>=${startDate}&date<=${endDate}`;
+          const locations = await fetchJson(`${API_BASE}/location?${query}`, signal);
+          if (signal.aborted) return;
+          locations.forEach((item) => locationsByDriver.get(Number(item.driver_number))?.push(item));
+          $("#replayEmpty").textContent = `正在載入全車手 GPS 軌跡… ${Math.min(index + batchSize, drivers.length)} / ${drivers.length}`;
+        }
+        const cars = drivers
+          .map((driver) => ({ driver, data: locationsByDriver.get(Number(driver.driver_number)) }))
+          .filter((car) => car.data.length);
+        if (!cars.length) {
+          throw new Error("OpenF1 沒有回傳 GPS 位置。");
+        }
+        renderRaceReplay(cars, startTime);
+        replayLoadingSessionKey = "";
+        if (replayCars.length) replayLoadedSessionKey = String(session.session_key);
+        const missing = drivers.filter((driver) => !locationsByDriver.get(Number(driver.driver_number)).length);
+        if (missing.length) {
+          const labels = missing.map((driver) => driverShortCode(driver) || `#${driver.driver_number}`).join("、");
+          $("#replayStatus").textContent = `全車手 GPS · ${replayCars.length} / ${drivers.length} 位（無資料：${labels}）`;
+        }
       } catch (error) {
         if (error.name === "AbortError") return;
+        replayLoadingSessionKey = "";
         resetRaceReplay(`GPS 軌跡載入失敗：${error.message}`);
         $("#replayStatus").textContent = "載入失敗";
+      }
+    }
+
+    function setRaceReplayExpanded(expanded) {
+      const section = $("#raceReplaySection");
+      const toggle = $("#replayToggle");
+      section.hidden = !expanded;
+      toggle.setAttribute("aria-expanded", String(expanded));
+      toggle.textContent = expanded ? "收合賽道回放" : "▶ 載入多人賽道回放";
+      if (expanded) {
+        const session = state.selectedSessions.find((item) => String(item.session_key) === $("#detailSessionSelect").value);
+        if (session && replayLoadedSessionKey !== String(session.session_key) &&
+          replayLoadingSessionKey !== String(session.session_key)) {
+          loadRaceReplay(session);
+        }
+        if (window.gsap && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          gsap.fromTo(section, { y: 12, autoAlpha: 0 }, {
+            y: 0, autoAlpha: 1, duration: 0.35, ease: "power2.out", clearProps: "transform"
+          });
+        }
+      } else if (replayLoadingSessionKey) {
+        resetRaceReplay("按「載入多人賽道回放」後才會向資料來源請求 GPS 軌跡。");
+      } else {
+        stopRaceReplay();
       }
     }
 
@@ -1681,7 +3384,7 @@
         ["記錄圈數", laps.length],
         ["最快圈", formatLapTime(bestLap)],
         ["最高測速", topSpeed ? `${topSpeed} km/h` : "—"],
-        ["車手", driver ? driver.name_acronym || `#${driver.driver_number}` : "—"]
+        ["車手", driver ? driverShortCode(driver) || `#${driver.driver_number}` : "—"]
       ].forEach(([label, value]) => {
         const metric = document.createElement("div");
         metric.className = "detail-metric";
@@ -1801,6 +3504,7 @@
       if (!session) return;
       if (detailController) detailController.abort();
       if (driverDataController) driverDataController.abort();
+      resetRaceReplay("按「載入多人賽道回放」後才會向資料來源請求 GPS 軌跡。");
       detailController = new AbortController();
       const { signal } = detailController;
       const meeting = state.selectedMeeting;
@@ -1825,17 +3529,18 @@
         driverSelect.replaceChildren();
         state.drivers
           .slice()
-          .sort((a, b) => (a.name_acronym || "").localeCompare(b.name_acronym || ""))
+          .sort((a, b) => (driverShortCode(a) || "").localeCompare(driverShortCode(b) || ""))
           .forEach((driver) => {
             const driverOption = document.createElement("option");
             driverOption.value = String(driver.driver_number);
-            driverOption.textContent = `${driver.name_acronym || driver.full_name} (#${driver.driver_number})`;
+            const shortCode = driverShortCode(driver);
+            driverOption.textContent = `${shortCode ? `${shortCode} · ` : ""}${driverDisplayName(driver)} (#${driver.driver_number})`;
             driverSelect.append(driverOption);
           });
         if (state.drivers.some((driver) => String(driver.driver_number) === previousDriver)) driverSelect.value = previousDriver;
         else if (state.drivers.length) driverSelect.value = String(state.drivers[0].driver_number);
         const selectedDriver = state.drivers.find((driver) => String(driver.driver_number) === driverSelect.value) || null;
-        loadRaceReplay(session, selectedDriver);
+        if (!$("#raceReplaySection").hidden) loadRaceReplay(session);
         const issues = [];
         try {
           const positions = await fetchJson(`${API_BASE}/position?session_key=${encodeURIComponent(session.session_key)}`, signal);
@@ -1887,9 +3592,14 @@
 
     async function openRacePage(session, routeSessionKey = "", updateHash = true) {
       if (!session) return;
+      setRaceReplayExpanded(false);
+      resetRaceReplay("按「載入多人賽道回放」後才會向資料來源請求 GPS 軌跡。");
       state.selectedMeeting = session;
       $("#overview").classList.add("detail-mode");
+      $("#overview").classList.remove("profile-mode");
       $("#raceDetailPage").hidden = false;
+      $("#profileDetailPage").hidden = true;
+      animateDetailPage();
       $("#breadcrumbLabel").textContent = createRaceName(session);
       $("#detailRaceTitle").textContent = createRaceName(session);
       $("#detailOverline").textContent = `${getYear()} GRAND PRIX HISTORY`;
@@ -1930,8 +3640,12 @@
 
     function showCalendar() {
       if (detailController) detailController.abort();
+      setRaceReplayExpanded(false);
+      resetRaceReplay("按「載入多人賽道回放」後才會向資料來源請求 GPS 軌跡。");
       $("#overview").classList.remove("detail-mode");
+      $("#overview").classList.remove("profile-mode");
       $("#raceDetailPage").hidden = true;
+      $("#profileDetailPage").hidden = true;
       $("#breadcrumbLabel").textContent = "賽季總覽";
       document.title = "APEX // F1 賽事資料系統";
       state.selectedMeeting = null;
@@ -1939,7 +3653,127 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
+    function setAnimatedStat(selector, value) {
+      const element = $(selector);
+      if (!window.gsap || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        element.textContent = String(value);
+        return;
+      }
+      const current = Number(element.textContent) || 0;
+      const counter = { value: current };
+      gsap.to(counter, {
+        value, duration: 1.1, ease: "power2.out", overwrite: true,
+        onUpdate: () => { element.textContent = String(Math.round(counter.value)); }
+      });
+    }
+
+    function animateRaceRows() {
+      if (!window.gsap || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const rows = $$("#raceList .race-row");
+      if (!rows.length) return;
+      gsap.fromTo(rows, { autoAlpha: 0, x: -12 }, {
+        autoAlpha: 1, x: 0, duration: 0.42, stagger: 0.035, ease: "power2.out", clearProps: "transform"
+      });
+    }
+
+    function animateDriverRows() {
+      if (!window.gsap || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const rows = $$("#driverList .driver-row");
+      if (!rows.length) return;
+      gsap.fromTo(rows, { autoAlpha: 0, x: 10 }, {
+        autoAlpha: 1, x: 0, duration: 0.35, stagger: 0.045, ease: "power2.out", clearProps: "transform"
+      });
+    }
+
+    function animateReplayTrack() {
+      if (!window.gsap || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const track = $("#replayTrackLine");
+      const center = $("#replayTrackCenter");
+      const length = track.getTotalLength();
+      if (!length) return;
+      gsap.set([track, center], { strokeDasharray: length, strokeDashoffset: length });
+      gsap.to([track, center], {
+        strokeDashoffset: 0, duration: 1.2, stagger: 0.12, ease: "power2.inOut", overwrite: true
+      });
+    }
+
+    function initGsapMotion() {
+      if (!window.gsap || !window.ScrollTrigger) return;
+      gsap.registerPlugin(ScrollTrigger);
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      document.documentElement.classList.add("gsap-ready");
+      if (reduceMotion) return;
+
+      const intro = gsap.timeline({ defaults: { ease: "power3.out" } });
+      intro.from(".sidebar .brand", { x: -18, autoAlpha: 0, duration: 0.45 })
+        .from(".sidebar-bottom", { y: 10, autoAlpha: 0, duration: 0.35 }, "-=0.12")
+        .from(".topbar", { y: -12, autoAlpha: 0, duration: 0.4 }, "-=0.2")
+        .from(".page-heading > *", { y: 18, autoAlpha: 0, duration: 0.48, stagger: 0.1 }, "-=0.12")
+        .from(".hero", { y: 24, autoAlpha: 0, duration: 0.65 }, "-=0.12")
+        .from(".hero-main > *, .hero-stats > *, .search-panel > *", {
+          y: 12, autoAlpha: 0, duration: 0.4, stagger: 0.055
+        }, "-=0.4");
+
+      gsap.fromTo(".stat-card", { y: 24, autoAlpha: 0 }, {
+        y: 0, autoAlpha: 1, duration: 0.55, stagger: 0.1, ease: "power2.out",
+        scrollTrigger: { trigger: ".stats", start: "top 88%", once: true }
+      });
+      gsap.fromTo(".content-grid .panel", { y: 22, autoAlpha: 0 }, {
+        y: 0, autoAlpha: 1, duration: 0.55, stagger: 0.12, ease: "power2.out",
+        scrollTrigger: { trigger: ".content-grid", start: "top 86%", once: true }
+      });
+      gsap.fromTo(".footnote", { autoAlpha: 0, y: 10 }, {
+        autoAlpha: 1, y: 0, duration: 0.45,
+        scrollTrigger: { trigger: ".footnote", start: "top 98%", once: true }
+      });
+
+      $$(".stat-card").forEach((card) => {
+        card.addEventListener("pointerenter", () => gsap.to(card, {
+          y: -4, scale: 1.015, duration: 0.22, ease: "power2.out", overwrite: "auto"
+        }));
+        card.addEventListener("pointerleave", () => gsap.to(card, {
+          y: 0, scale: 1, duration: 0.28, ease: "power2.out", overwrite: "auto"
+        }));
+      });
+    }
+
+    function animateDetailPage() {
+      if (!window.gsap || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      gsap.fromTo("#raceDetailPage > *", { y: 16, autoAlpha: 0 }, {
+        y: 0, autoAlpha: 1, duration: 0.45, stagger: 0.07, ease: "power2.out", clearProps: "transform"
+      });
+      if (window.ScrollTrigger) requestAnimationFrame(() => ScrollTrigger.refresh());
+    }
+
     function handleRoute() {
+      const driverMatch = location.hash.match(/^#driver\/(\d{4})\/(\d+)$/);
+      if (driverMatch) {
+        if (Number($("#seasonSelect").value) !== Number(driverMatch[1])) {
+          $("#seasonSelect").value = driverMatch[1];
+          loadSeason();
+          return;
+        }
+        openProfilePage("driver", driverMatch[2]);
+        return;
+      }
+      const teamMatch = location.hash.match(/^#team\/(\d{4})\/(.+)$/);
+      if (teamMatch) {
+        let teamName;
+        try {
+          teamName = decodeURIComponent(teamMatch[2]);
+        } catch (error) {
+          showToast(`車隊連結格式無效：${error.message}`);
+          showCalendar();
+          return;
+        }
+        if (Number($("#seasonSelect").value) !== Number(teamMatch[1])) {
+          $("#seasonSelect").value = teamMatch[1];
+          loadSeason();
+          return;
+        }
+        openProfilePage("team", teamName);
+        return;
+      }
       const match = location.hash.match(/^#race\/(\d{4})\/(\d+)(?:\/(\d+))?$/);
       if (!match) {
         if ($("#overview").classList.contains("detail-mode")) showCalendar();
@@ -2006,16 +3840,45 @@
       }
       seasonSelect.value = String(currentYear);
       seasonSelect.addEventListener("change", loadSeason);
+      loadFavorites();
+      $("#driverFavoritesToggle").addEventListener("click", () => {
+        state.favoritesOnly.drivers = !state.favoritesOnly.drivers;
+        renderCurrentChampionship("drivers");
+      });
+      $("#teamFavoritesToggle").addEventListener("click", () => {
+        state.favoritesOnly.teams = !state.favoritesOnly.teams;
+        renderCurrentChampionship("teams");
+      });
+      $("#profileFavoriteToggle").addEventListener("click", () => {
+        if (profileFavorite) toggleFavorite(profileFavorite.kind, profileFavorite.identifier);
+      });
       $("#openRaceButton").addEventListener("click", () => {
         const selected = state.sessions.find((session) => String(session.meeting_key) === $("#raceSelect").value);
         if (selected) openRacePage(selected);
         else showToast("請先從下拉選單選擇一個分站。");
       });
+      $("#nextSessionButton").addEventListener("click", () => {
+        const now = Date.now();
+        const schedule = state.weekendSessions.length ? state.weekendSessions : state.sessions;
+        const next = schedule.find((session) => new Date(session.date_start).getTime() > now);
+        const active = schedule.find((session) =>
+          new Date(session.date_start).getTime() <= now && new Date(session.date_end).getTime() >= now
+        );
+        const target = next || active;
+        if (!target) {
+          showToast(state.scheduleLoaded ? "目前沒有可查看的後續賽段。" : "賽程尚未載入，請稍後再試。");
+          return;
+        }
+        const race = state.sessions.find((session) => Number(session.meeting_key) === Number(target.meeting_key));
+        openRacePage(race || target, String(target.session_key));
+      });
       $("#detailSessionSelect").addEventListener("change", loadSelectedSession);
+      $("#replayToggle").addEventListener("click", () => {
+        setRaceReplayExpanded($("#raceReplaySection").hidden);
+      });
       $("#detailDriverSelect").addEventListener("change", () => {
         const session = state.selectedSessions.find((item) => String(item.session_key) === $("#detailSessionSelect").value);
         const driver = state.drivers.find((item) => String(item.driver_number) === $("#detailDriverSelect").value);
-        loadRaceReplay(session, driver || null);
         if (driverDataController) driverDataController.abort();
         driverDataController = new AbortController();
         if (session) loadDriverDetailData(session, driver || null, driverDataController.signal).catch((error) => {
@@ -2030,16 +3893,12 @@
           stopRaceReplay();
           return;
         }
-        if (!replayRecords.length) return;
-        if (Number($("#replayProgress").value) >= 1000) updateRaceReplay(replayStartTime);
-        replayPlaying = true;
-        replayLastFrame = 0;
-        $("#replayPlay").textContent = "Ⅱ 暫停";
-        replayFrame = requestAnimationFrame(animateRaceReplay);
+        if (!replayCars.length) return;
+        startRaceReplay();
       });
       $("#replayProgress").addEventListener("input", () => {
         stopRaceReplay();
-        if (!replayRecords.length) return;
+        if (!replayCars.length) return;
         const progress = Number($("#replayProgress").value) / 1000;
         updateRaceReplay(replayStartTime + (replayEndTime - replayStartTime) * progress);
       });
@@ -2047,9 +3906,14 @@
         location.hash = "overview";
         showCalendar();
       });
+      $("#backToChampionships").addEventListener("click", () => {
+        showCalendar();
+        location.hash = "championships";
+        $("#championships").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
       window.addEventListener("hashchange", handleRoute);
       $("#refreshButton").addEventListener("click", () => {
-        responseCache.clear();
+        clearApiCache();
         loadSeason();
         showToast("正在更新賽事資料…");
       });
@@ -2085,7 +3949,10 @@
       }, { once: true });
     }
 
-    init();
+    document.addEventListener("DOMContentLoaded", () => {
+      initGsapMotion();
+      init();
+    }, { once: true });
   </script>
 </body>
 </html>
