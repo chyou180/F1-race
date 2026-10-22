@@ -182,6 +182,65 @@ async function getTitleTranslationCacheKey(origin, title) {
   return new Request(`${origin}/__cache/translations/${key}`, { method: "GET" });
 }
 
+function extractTranslationArray(value, count, depth = 0) {
+  if (depth > 4) return null;
+  if (Array.isArray(value)) {
+    if (value.length === count && value.every((item) => typeof item === "string")) return value;
+    const objectTranslations = value.map((item) =>
+      item && typeof item === "object"
+        ? item.translatedTitle || item.translation || item.translated_title
+        : item
+    );
+    if (objectTranslations.length === count && objectTranslations.every((item) => typeof item === "string")) {
+      return objectTranslations;
+    }
+    return null;
+  }
+  if (value && typeof value === "object") {
+    for (const nested of Object.values(value)) {
+      const found = extractTranslationArray(nested, count, depth + 1);
+      if (found) return found;
+    }
+  } else if (typeof value === "string" && /^[\s]*[\[{]/.test(value)) {
+    try {
+      return extractTranslationArray(JSON.parse(value), count, depth + 1);
+    } catch (error) {
+      return null;
+    }
+  }
+  return null;
+}
+
+function parseTranslationOutput(rawResponse, count) {
+  const normalized = rawResponse.trim().replace(/^```(?:json)?\s*|\s*```$/gi, "");
+  try {
+    const parsed = JSON.parse(normalized);
+    const translations = extractTranslationArray(parsed, count);
+    if (translations) return translations;
+  } catch (error) {
+    const jsonStart = normalized.indexOf("{");
+    const jsonEnd = normalized.lastIndexOf("}");
+    if (jsonStart >= 0 && jsonEnd > jsonStart) {
+      try {
+        const parsed = JSON.parse(normalized.slice(jsonStart, jsonEnd + 1));
+        const translations = extractTranslationArray(parsed, count);
+        if (translations) return translations;
+      } catch (parseError) {
+        console.error("Workers AI returned invalid news translation JSON.", parseError);
+      }
+    }
+  }
+
+  const lines = normalized.split(/\r?\n/)
+    .map((line) => line.trim()
+      .replace(/^(?:[-*•]\s*|\d+\s*[.)、:]\s*)/, "")
+      .replace(/^["'“”‘’]+|["'“”‘’]+$/g, ""))
+    .filter(Boolean);
+  if (lines.length === count && lines.every((line) => !/[{}[\]]/.test(line))) return lines;
+  if (count === 1 && normalized && !/[{}[\]]/.test(normalized)) return [normalized];
+  return null;
+}
+
 async function translateNewsTitles(env, origin, articles) {
   const cache = caches.default;
   const titles = articles.slice(0, 8);
@@ -210,27 +269,13 @@ async function translateNewsTitles(env, origin, articles) {
         max_tokens: 512,
         temperature: 0.1
       });
-      let parsed;
-      const rawResponse = String(result?.response || "").trim();
-      try {
-        parsed = JSON.parse(rawResponse.replace(/^```(?:json)?\s*|\s*```$/gi, ""));
-      } catch (error) {
-        const jsonStart = rawResponse.indexOf("{");
-        const jsonEnd = rawResponse.lastIndexOf("}");
-        if (jsonStart >= 0 && jsonEnd > jsonStart) {
-          try {
-            parsed = JSON.parse(rawResponse.slice(jsonStart, jsonEnd + 1));
-          } catch (parseError) {
-            console.error("Workers AI returned invalid news translation JSON.", parseError);
-          }
-        } else {
-          console.error("Workers AI returned invalid news translation JSON.", error);
-        }
-      }
-      if (Array.isArray(parsed?.translations) && parsed.translations.length === uncached.length) {
+      const response = result?.response ?? result;
+      const rawResponse = (typeof response === "string" ? response : JSON.stringify(response)).trim();
+      const translationsOutput = parseTranslationOutput(rawResponse, uncached.length);
+      if (translationsOutput) {
         await Promise.all(uncached.map(async ({ article, cacheKey }, index) => {
-          const translation = String(parsed.translations[index] || "").trim().slice(0, 300);
-          if (!translation) return;
+          const translation = String(translationsOutput[index] || "").trim().slice(0, 300);
+          if (!translation || !/[\u3400-\u9fff]/.test(translation)) return;
           translations.set(article.title, translation);
           try {
             await cache.put(cacheKey, new Response(JSON.stringify({ translation }), {
@@ -244,7 +289,9 @@ async function translateNewsTitles(env, origin, articles) {
           translationIssue = "incomplete_model_output";
         }
       } else {
-        console.error("Workers AI returned an unexpected number of translated headlines.");
+        console.error("Workers AI returned an unsupported news translation format.", {
+          outputLength: rawResponse.length
+        });
         translationIssue = "invalid_model_output";
       }
     } catch (error) {
@@ -294,7 +341,7 @@ function parseNewsFeed(xml, feed) {
 
 async function handleNews(request, requestUrl, env) {
   const cache = caches.default;
-  const cacheKey = new Request(`${requestUrl.origin}/__cache/news-v3`, { method: "GET" });
+  const cacheKey = new Request(`${requestUrl.origin}/__cache/news-v4`, { method: "GET" });
   let cached;
   try {
     cached = await cache.match(cacheKey);
