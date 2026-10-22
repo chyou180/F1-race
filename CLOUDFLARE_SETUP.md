@@ -4,7 +4,7 @@ This Worker caches the public OpenF1 and Open-Meteo responses at Cloudflare edge
 
 It also provides a cached `/news` endpoint that returns F1 headlines and links from Formula1.com, BBC Sport, and Autosport. The page links separately to a Traditional Chinese Google News search; it does not copy or re-host those search results. The local prediction panel uses championship standings and the latest race classification, with no paid AI service or API key.
 
-The latest version can translate English headlines into Traditional Chinese using the Cloudflare Workers AI `@cf/meta/llama-3.2-3b-instruct` model. Workers AI currently includes 10,000 free Neurons per day; usage above that requires the Workers Paid plan. Translations are cached per headline for 30 days to reduce inference requests.
+The latest version selects up to five recent, deduplicated headlines across the three feeds and can translate them into Traditional Chinese using the Cloudflare Workers AI `@cf/meta/llama-3.2-3b-instruct` model. Each headline is translated as plain text to avoid depending on a model-specific JSON response format. Workers AI currently includes 10,000 free Neurons per day; usage above that requires the Workers Paid plan. Translations are cached per headline for 30 days to reduce inference requests.
 
 ## Deploy on the free plan
 

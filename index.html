@@ -1418,12 +1418,12 @@
         </div>
       </section>
 
-      <section class="intelligence-grid" id="race-intelligence" aria-label="F1 最新新聞與數據預測">
+      <section class="intelligence-grid" id="race-intelligence" aria-label="F1 精選新聞與數據預測">
         <article class="panel">
           <div class="panel-header">
             <div>
-              <h2 class="panel-title">F1 最新新聞</h2>
-              <p class="panel-subtitle">新聞標題翻譯為繁體中文；點擊可閱讀英文原文。</p>
+              <h2 class="panel-title">F1 精選新聞</h2>
+              <p class="panel-subtitle">依最新消息與來源多樣性精選；標題翻譯為繁體中文，點擊可閱讀英文原文。</p>
             </div>
             <button class="icon-button intelligence-refresh" id="newsRefreshButton" type="button" aria-label="重新載入 F1 新聞" title="重新載入新聞">↻</button>
           </div>
@@ -2775,7 +2775,7 @@
         if (!Array.isArray(data.articles)) throw new Error("新聞服務回傳格式不符預期。");
         const list = $("#newsList");
         list.replaceChildren();
-        data.articles.slice(0, 8).forEach((article) => {
+        data.articles.slice(0, 5).forEach((article) => {
           let articleUrl;
           try {
             articleUrl = new URL(article.url);
