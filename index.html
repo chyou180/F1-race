@@ -1410,7 +1410,7 @@
         <article class="stat-card">
           <div class="stat-top"><span class="stat-label">最近檢查</span><span class="stat-glyph">⟳</span></div>
           <div class="stat-value" id="updatedValue" style="font-size:20px">—</div>
-          <div class="stat-foot">每 60 秒檢查，資料暫存 5 分鐘</div>
+          <div class="stat-foot">賽後約 31 分鐘更新歷史名次</div>
         </article>
       </section>
 
@@ -1665,6 +1665,7 @@
     };
     let toastTimer;
     let refreshTimer;
+    const POST_RACE_REFRESH_DELAY_MS = 31 * 60 * 1000;
     let countdownTimer;
     let requestController;
     let weatherController;
@@ -1787,6 +1788,62 @@
         keys.forEach((key) => localStorage.removeItem(key));
       } catch (error) {
         console.warn("無法清除已儲存的 OpenF1 快取。", error);
+      }
+    }
+
+    function clearApiCacheForEndpoints(endpoints) {
+      const matchesEndpoint = (url) => {
+        try {
+          return endpoints.has(new URL(url).pathname.split("/").pop());
+        } catch (error) {
+          console.warn("無法判斷快取資料端點。", error);
+          return false;
+        }
+      };
+      for (const url of responseCache.keys()) {
+        if (matchesEndpoint(url)) responseCache.delete(url);
+      }
+      try {
+        const keys = [];
+        for (let index = 0; index < localStorage.length; index += 1) {
+          const key = localStorage.key(index);
+          if (key?.startsWith(API_CACHE_PREFIX) && matchesEndpoint(key.slice(API_CACHE_PREFIX.length))) {
+            keys.push(key);
+          }
+        }
+        keys.forEach((key) => localStorage.removeItem(key));
+      } catch (error) {
+        console.warn("無法清除賽後名次快取。", error);
+      }
+    }
+
+    function refreshPostRaceData() {
+      if ($("#overview").classList.contains("detail-mode")) {
+        refreshTimer = setTimeout(refreshPostRaceData, 5 * 60 * 1000);
+        return;
+      }
+      clearApiCacheForEndpoints(new Set(["championship_drivers", "championship_teams", "position"]));
+      loadSeason();
+    }
+
+    function schedulePostRaceRefresh() {
+      clearTimeout(refreshTimer);
+      refreshTimer = null;
+      if (!state.scheduleLoaded) return;
+      const now = Date.now();
+      const nextRefresh = state.sessions
+        .filter((session) => !session.is_cancelled)
+        .map((session) => new Date(session.date_end).getTime() + POST_RACE_REFRESH_DELAY_MS)
+        .filter((time) => Number.isFinite(time) && time > now)
+        .sort((a, b) => a - b)[0];
+      if (nextRefresh) {
+        refreshTimer = setTimeout(() => {
+          if (Date.now() < nextRefresh) {
+            schedulePostRaceRefresh();
+            return;
+          }
+          refreshPostRaceData();
+        }, Math.min(nextRefresh - now, 2_147_000_000));
       }
     }
 
@@ -2593,7 +2650,6 @@
       state.driverStandings = [];
       state.teamStandings = [];
       state.championshipSession = null;
-      state.scheduleLoaded = false;
       state.profileDataReady = false;
       state.profileDataError = "";
       if (!latest) {
@@ -2672,9 +2728,11 @@
           $("#teamChampionshipStatus").textContent = `車隊積分無法載入：${error.message}`;
           if (/^#(?:driver|team)\//.test(location.hash)) handleRoute();
           setStatus(`賽程已載入；名次資料無法取得：${error instanceof TypeError ? "請檢查網路連線。" : error.message}`, "warning");
+          schedulePostRaceRefresh();
           return;
         }
         if (!signal.aborted) setStatus(`已載入 ${year} 賽季 ${state.sessions.length} 個正賽分站；名次為最近已完成賽事資料。`, "success");
+        schedulePostRaceRefresh();
       } catch (error) {
         if (error.name === "AbortError") return;
         state.profileDataReady = true;
@@ -2693,6 +2751,7 @@
         $("#teamChampionshipStatus").textContent = `車隊積分無法載入：${error.message}`;
         if (/^#(?:driver|team)\//.test(location.hash)) handleRoute();
         setStatus(error instanceof TypeError ? "無法連線至 OpenF1。請檢查網路，並使用本機伺服器或 HTTPS 開啟頁面。" : error.message, "error");
+        schedulePostRaceRefresh();
       }
     }
 
@@ -3936,11 +3995,8 @@
       });
       loadSeason();
       countdownTimer = setInterval(updateCountdown, 1000);
-      refreshTimer = setInterval(() => {
-        if (!$("#overview").classList.contains("detail-mode")) loadSeason();
-      }, 60000);
       window.addEventListener("beforeunload", () => {
-        clearInterval(refreshTimer);
+        clearTimeout(refreshTimer);
         clearInterval(countdownTimer);
         if (requestController) requestController.abort();
         if (detailController) detailController.abort();
