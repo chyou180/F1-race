@@ -2821,12 +2821,12 @@
           ? data.sources.filter((source) => source.available).map((source) => source.name)
           : [];
         const translationStatus = data.translationAvailable
-          ? "AI 翻譯完成"
+          ? "標題翻譯完成"
           : data.translationConfigured
             ? data.translationIssue === "inference_failed"
-              ? "AI 翻譯暫時失敗"
+              ? "標題翻譯暫時失敗"
               : data.translationIssue === "invalid_model_output" || data.translationIssue === "incomplete_model_output"
-                ? "AI 翻譯格式異常"
+                ? "部分標題翻譯失敗"
                 : "部分標題暫無翻譯"
             : "Worker 尚未啟用 Workers AI";
         $("#newsStatus").textContent = `最近更新 ${formatDate(data.updatedAt)}${availableSources.length ? ` · ${availableSources.join("、")}` : ""} · ${translationStatus} · 約每 10 分鐘更新`;
