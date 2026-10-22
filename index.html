@@ -140,7 +140,7 @@
     .intelligence-grid .panel { min-width: 0; margin: 0; }
     .news-list, .prediction-list { display: grid; gap: 7px; margin-top: 12px; }
     .news-item, .prediction-row { min-width: 0; padding: 10px 11px; border: 1px solid var(--glass-stroke); border-left: 3px solid var(--team-color, var(--red)); border-radius: 11px; background: rgba(255, 255, 255, .035); }
-    .news-item a { color: var(--text); font-size: 10px; font-weight: 700; line-height: 1.55; text-decoration: none; }
+    .news-item > a { display: -webkit-box; overflow: hidden; color: var(--text); font-size: 10px; font-weight: 700; line-height: 1.55; text-decoration: none; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
     .news-item a:hover { color: var(--orange); text-decoration: underline; text-underline-offset: 3px; }
     .news-item-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 5px; color: var(--muted); font: 8px var(--mono); }
     .news-original { margin-top: 6px; color: var(--muted); font-size: 8px; line-height: 1.55; }
@@ -1050,10 +1050,10 @@
     body::before {
       position: fixed; z-index: 0; inset: -24%; content: ""; pointer-events: none;
       background:
-        radial-gradient(ellipse at 18% 25%, rgba(30, 194, 174, .19), transparent 34%),
-        radial-gradient(ellipse at 78% 18%, rgba(255, 93, 66, .17), transparent 31%),
-        radial-gradient(ellipse at 66% 78%, rgba(75, 121, 196, .18), transparent 38%);
-      filter: blur(38px); animation: ambient-flow 28s ease-in-out infinite alternate;
+        radial-gradient(ellipse at 78% 18%, rgba(255, 93, 66, .1), transparent 34%),
+        radial-gradient(ellipse at 18% 42%, rgba(30, 194, 174, .08), transparent 36%);
+      filter: blur(54px);
+      animation: none;
     }
     .app { position: relative; z-index: 1; }
     @keyframes ambient-flow {
@@ -1301,6 +1301,70 @@
       .track-car::before { animation: none; }
       .track-car svg circle { animation: none !important; }
     }
+    :root {
+      --glass-blur: 10px;
+      --glass-shadow: 0 10px 30px rgba(5, 12, 20, .1), inset 0 1px rgba(255, 255, 255, .12);
+    }
+    .nav-caption, .panel-code, .championship-code { display: none; }
+    main { padding-top: 24px; }
+    .topbar { margin-bottom: 28px; }
+    .page-heading { margin-bottom: 24px; }
+    .eyebrow { letter-spacing: .7px; }
+    .page-heading p, .panel-subtitle, .championship-subtitle { font-size: 11px; line-height: 1.55; }
+    .panel, .championship-panel { padding: 20px; border-radius: 16px; }
+    .panel + .panel { margin-top: 16px; }
+    .panel-title, .championship-title {
+      font-family: var(--sans);
+      font-size: 17px;
+      font-weight: 750;
+      letter-spacing: 0;
+    }
+    .panel-header, .championship-heading { gap: 16px; }
+    .weekend-panel, .intelligence-grid, .stats, .championships, .content-grid { margin-bottom: 18px; }
+    .intelligence-grid, .championships { gap: 16px; }
+    .stat-card { min-height: 92px; padding: 14px 16px; border-radius: 14px; }
+    .hero {
+      gap: 20px;
+      padding: 26px;
+      border-radius: 18px;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, .1);
+    }
+    .hero::after, .start-lights, .race-track { display: none; }
+    .hero-stat-label::after { content: none; }
+    .hero-overline, .hero-weather-note, .search-panel .search-note { display: none; }
+    .hero-weather {
+      margin-top: 8px;
+      padding: 9px 0 0;
+      border: 0;
+      border-top: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 0;
+      background: transparent;
+    }
+    .countdown-unit { background: rgba(5, 9, 13, .16); }
+    .race-row, .driver-row, .championship-row, .replay-leaderboard-row {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      box-shadow: none;
+    }
+    body[data-theme="light"] .championship-panel { background: var(--glass-light); }
+    body[data-theme="dark"] .championship-panel { background: var(--glass-dark); }
+    @media (max-width: 850px) {
+      main { padding: 20px 20px 36px; }
+    }
+    @media (max-width: 570px) {
+      main { padding: 14px 14px 28px; }
+      .topbar { margin-bottom: 20px; }
+      .page-heading { gap: 10px; margin-bottom: 14px; }
+      .hero { gap: 12px; padding: 18px 16px; border-radius: 16px; }
+      .hero-subtitle { font-size: 12px; }
+      .panel, .championship-panel { padding: 16px; border-radius: 15px; }
+      .panel + .panel { margin-top: 12px; }
+      .panel-title, .championship-title { font-size: 16px; }
+      .weekend-panel, .intelligence-grid, .stats, .championships, .content-grid { margin-bottom: 12px; }
+      .stats { gap: 8px; }
+      .stat-card { min-height: 84px; padding: 11px; }
+      .championship-row { padding-right: 5px; padding-left: 5px; }
+    }
   </style>
 </head>
 <body>
@@ -1344,7 +1408,7 @@
 
       <section class="page-heading">
         <div>
-          <div class="eyebrow">速度の美学 / 2026 RACE REVIEW</div>
+          <div class="eyebrow">2026 賽季總覽</div>
           <h1>F1 賽事資料系統</h1>
           <p>用賽道的速度，讀懂每一場比賽。</p>
         </div>
@@ -1362,16 +1426,16 @@
         <div class="hero-stats">
           <div class="hero-stat-label" id="heroStatLabel">距離下一場正賽</div>
           <div class="hero-countdown" id="heroCountdown" aria-label="距離下一個賽段的倒數時間">
-            <div class="countdown-unit"><b id="countdownDays">--</b><span>天 DAYS</span></div>
-            <div class="countdown-unit"><b id="countdownHours">--</b><span>時 HRS</span></div>
-            <div class="countdown-unit"><b id="countdownMinutes">--</b><span>分 MIN</span></div>
-            <div class="countdown-unit"><b id="countdownSeconds">--</b><span>秒 SEC</span></div>
+            <div class="countdown-unit"><b id="countdownDays">--</b><span>天</span></div>
+            <div class="countdown-unit"><b id="countdownHours">--</b><span>時</span></div>
+            <div class="countdown-unit"><b id="countdownMinutes">--</b><span>分</span></div>
+            <div class="countdown-unit"><b id="countdownSeconds">--</b><span>秒</span></div>
           </div>
           <div class="hero-stat-value" id="heroStatValue" hidden>—</div>
           <div class="hero-stat-foot" id="heroStatFoot">等待賽程資料</div>
           <button class="hero-session-button" id="nextSessionButton" type="button" disabled>查看賽段資料 ↗</button>
           <div class="hero-weather" id="nextSessionWeather" aria-live="polite">
-            <span class="hero-weather-label">賽段天氣 FORECAST</span>
+            <span class="hero-weather-label">賽段天氣</span>
             <span class="hero-weather-value" id="weatherForecastValue">等待賽程資料…</span>
             <span class="hero-weather-note" id="weatherForecastNote">使用賽道位置查詢預報；尚未發布時會清楚標示。</span>
           </div>
@@ -1423,7 +1487,7 @@
           <div class="panel-header">
             <div>
               <h2 class="panel-title">F1 精選新聞</h2>
-              <p class="panel-subtitle">依最新消息與來源多樣性精選；標題翻譯為繁體中文，點擊可閱讀英文原文。</p>
+              <p class="panel-subtitle">最新 F1 賽事消息，標題提供繁體中文。</p>
             </div>
             <button class="icon-button intelligence-refresh" id="newsRefreshButton" type="button" aria-label="重新載入 F1 新聞" title="重新載入新聞">↻</button>
           </div>
@@ -2360,7 +2424,7 @@
         ? createRaceName(upcoming)
         : state.scheduleLoaded ? `${getYear()} 賽季賽事已結束` : "賽程暫時無法載入";
       $("#heroSubtitle").textContent = upcoming
-        ? `${translateCircuitName(upcoming.circuit_short_name || upcoming.location)} ・ ${translateCountryName(upcoming.country_name)} ・ ${isActiveTarget ? "目前賽段" : "下一賽段"}：${translateSessionName(upcoming.session_name || upcoming.session_type)} ・ ${formatDate(upcoming.date_start)}`
+        ? `${translateCircuitName(upcoming.circuit_short_name || upcoming.location)} ・ ${translateCountryName(upcoming.country_name)} ・ ${isActiveTarget ? "目前賽段" : "下一賽段"}：${translateSessionName(upcoming.session_name || upcoming.session_type)}`
         : state.scheduleLoaded ? "目前沒有可用的後續賽段資料。" : "OpenF1 賽程暫時無法取得，請稍後再試。";
       $("#heroOverline").textContent = isActiveTarget ? "SESSION IN PROGRESS / 賽段進行中" : "NEXT SESSION / 下一個賽段";
       $("#heroStatLabel").textContent = isActiveTarget ? "距離本賽段結束" : "距離下一賽段開始";
@@ -2775,6 +2839,7 @@
         if (!Array.isArray(data.articles)) throw new Error("新聞服務回傳格式不符預期。");
         const list = $("#newsList");
         list.replaceChildren();
+        let validTranslationCount = 0;
         data.articles.slice(0, 5).forEach((article) => {
           let articleUrl;
           try {
@@ -2793,8 +2858,31 @@
           link.href = articleUrl.toString();
           link.target = "_blank";
           link.rel = "noopener noreferrer";
-          const originalTitle = String(article.title || "未命名新聞").slice(0, 240);
-          link.textContent = String(article.translatedTitle || originalTitle).slice(0, 300);
+          const originalTitle = String(article.title || "未命名新聞").trim().slice(0, 240);
+          const translatedTitle = String(article.translatedTitle || "")
+            .trim()
+            .replace(/^(?:translated headline|translated title|translation)\s*:\s*/i, "")
+            .replace(/\s+/g, " ");
+          const maxTranslationLength = Math.max(80, originalTitle.length * 2);
+          const withinTranslationLength = translatedTitle.length <= maxTranslationLength;
+          const normalizedTranslation = withinTranslationLength
+            ? translatedTitle.replace(/[\s\p{P}\p{S}]/gu, "").toLowerCase()
+            : "";
+          let repeatedTranslation = false;
+          for (let length = 14; length <= normalizedTranslation.length / 2 && !repeatedTranslation; length += 1) {
+            for (let start = 0; start + length * 2 <= normalizedTranslation.length; start += 1) {
+              const segment = normalizedTranslation.slice(start, start + length);
+              if (normalizedTranslation.indexOf(segment, start + length) !== -1) {
+                repeatedTranslation = true;
+                break;
+              }
+            }
+          }
+          const usableTranslation = /[\u3400-\u9fff]{2,}/.test(translatedTitle)
+            && withinTranslationLength
+            && !repeatedTranslation;
+          if (usableTranslation) validTranslationCount += 1;
+          link.textContent = String(usableTranslation ? translatedTitle : originalTitle).slice(0, 300);
           const meta = document.createElement("div");
           meta.className = "news-item-meta";
           const source = document.createElement("span");
@@ -2804,7 +2892,7 @@
           date.textContent = article.publishedAt ? formatDate(article.publishedAt) : "發布時間未提供";
           meta.append(source, date);
           item.append(link, meta);
-          if (article.translatedTitle) {
+          if (usableTranslation) {
             const original = document.createElement("details");
             original.className = "news-original";
             const summary = document.createElement("summary");
@@ -2820,15 +2908,11 @@
         const availableSources = Array.isArray(data.sources)
           ? data.sources.filter((source) => source.available).map((source) => source.name)
           : [];
-        const translationStatus = data.translationAvailable
+        const translationStatus = validTranslationCount === list.children.length
           ? "標題翻譯完成"
-          : data.translationConfigured
-            ? data.translationIssue === "inference_failed"
-              ? "標題翻譯暫時失敗"
-              : data.translationIssue === "invalid_model_output" || data.translationIssue === "incomplete_model_output"
-                ? "部分標題翻譯失敗"
-                : "部分標題暫無翻譯"
-            : "Worker 尚未啟用 Workers AI";
+          : validTranslationCount
+            ? "部分標題已有翻譯"
+            : "顯示原文標題";
         $("#newsStatus").textContent = `最近更新 ${formatDate(data.updatedAt)}${availableSources.length ? ` · ${availableSources.join("、")}` : ""} · ${translationStatus} · 約每 10 分鐘更新`;
       } catch (error) {
         if (error.name === "AbortError") return;
